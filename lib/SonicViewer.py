@@ -567,6 +567,10 @@ class SonicViewer(QtGui.QWidget):
 		# show = self.showTableButton.isChecked()
 		self.QTable.show()
 		self.QTable.activateWindow()
+	def closeEvent(self,event):
+		QtGui.QWidget.closeEvent(self,event)
+		self.fWidget.close()
+		self.phWidget.close()
 		
 
 if __name__ == '__main__':
