@@ -262,7 +262,7 @@ class GeoTravis(DataViewer):
         self.showSonicButton.setDisabled(True)
         if self.SViewer.hasData():
             self.showSonicButton.setDisabled(False)
-        else: self.SViewer.hide()
+        else: self.SViewer.close()
     def showSonicData(self):
         self.SViewer.show()
         self.SViewer.activateWindow()
