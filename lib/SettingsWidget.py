@@ -4,7 +4,7 @@ import pyqtgraph as pg
 from PySide import QtCore, QtGui
 # import numpy as np
 from ConfigParser import SafeConfigParser
-
+from configobj import ConfigObj
 
 class SettingsWidget(QtGui.QMainWindow):
 	"""docstring for SettingsWidget"""
@@ -15,12 +15,13 @@ class SettingsWidget(QtGui.QMainWindow):
 		self.okButton.clicked.connect(self.saveConfig)
 		self.cancelButton.clicked.connect(self.cancel)
 	def loadConfig(self):
-		config = SafeConfigParser()
-		config.read('config.ini')
-		p1 = config.get('effective_stress','Axial_stress')
-		p2 = config.get('effective_stress','Confining_stress')
-		p3 = config.get('effective_stress','Pore_pressure')
-		p4 = config.get('effective_stress','Biot')
+		# config = SafeConfigParser()
+		# config.read('config.ini')
+		config = ConfigObj('config.ini')
+		p1 = config['effective_stress']['Axial_stress']
+		p2 = config['effective_stress']['Confining_stress']
+		p3 = config['effective_stress']['Pore_pressure']
+		p4 = config['effective_stress']['Biot']
 		self.mcWidget.setParameters([p1,p2,p3,p4])
 	def setupGUI(self):
 		self.setWindowTitle('Settings')
@@ -49,15 +50,14 @@ class SettingsWidget(QtGui.QMainWindow):
 	def saveConfig(self):
 		print 'Saving Settings'
 		p = self.mcWidget.parameters()
-		config = SafeConfigParser()
-		# config.read('config.ini')
-		config.add_section('effective_stress')
-		config.set('effective_stress','Axial_stress',p[0])
-		config.set('effective_stress','Confining_stress',p[1])
-		config.set('effective_stress','Pore_pressure',p[2])
-		config.set('effective_stress','Biot',str(p[3]))
-		with open('config.ini', 'w') as f:
-		    config.write(f)
+		config = ConfigObj('config.ini')
+		config['effective_stress'] = {}
+		config['effective_stress']['Axial_stress'] = p[0]
+		config['effective_stress']['Confining_stress'] = p[1]
+		config['effective_stress']['Pore_pressure'] = p[2]
+		config['effective_stress']['Biot'] = p[3]
+		config.write()
+
 		    
 	def cancel(self):
 		print 'cancel settings change'

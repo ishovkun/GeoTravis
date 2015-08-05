@@ -14,6 +14,7 @@ from setupPlot import setup_plot
 from TableWidget import TableWidget
 from TriplePlotWidget import TriplePlotWidget
 from GradientEditorWidget import GradientEditorWidget
+from BindingWidget import BindingWidget
 
 xAxisName = 'Oscilloscope time (μs)'
 fXAxisName = 'Frequency (MHz)'
@@ -55,6 +56,7 @@ class SonicViewer(QtGui.QWidget):
 		self.setupGUI()
 		self.fWidget = TriplePlotWidget()
 		self.phWidget = TriplePlotWidget()
+		self.bWidget = BindingWidget(parents=[parent,self])
 		self.data = {'P':{},'Sx':{},'Sy':{}}
 		self.currentShifts = {'P':0,'Sx':0,'Sy':0}
 		self.connectPlotButtons()
@@ -81,6 +83,7 @@ class SonicViewer(QtGui.QWidget):
 		# self.showArrivalsButton.triggered.connect(self.plot)
 		self.waveFormButton.triggered.connect(lambda: self.setMode('WaveForms'))
 		self.contourButton.triggered.connect(lambda: self.setMode('Contours'))
+		self.moduliButton.triggered.connect(self.bWidget.run)
 		for wave in WaveTypes:
 			self.params[wave].param('Arrival times').param('Mpoint').sigValueChanged.connect(self.recomputeArrivals)
 			self.params[wave].param('Arrival times').param('BTA').sigValueChanged.connect(self.recomputeArrivals)
@@ -571,6 +574,8 @@ class SonicViewer(QtGui.QWidget):
 		QtGui.QWidget.closeEvent(self,event)
 		self.fWidget.close()
 		self.phWidget.close()
+		self.QTable.close()
+		self.bWidget.close()
 		
 
 if __name__ == '__main__':

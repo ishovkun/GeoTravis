@@ -4,6 +4,7 @@ import pyqtgraph as pg
 from PySide import QtCore, QtGui
 import numpy as np
 import re
+from configobj import ConfigObj
 
 class LineWidget(QtGui.QWidget):
 	def __init__(self,type='text',label=''):
@@ -35,6 +36,35 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		super(InterpretationSettingsWidget,self).__init__(None,
 			QtCore.Qt.WindowStaysOnTopHint)
 		self.setupGUI()
+		self.loadConfig()
+	def loadConfig(self):
+		config = ConfigObj('config.ini')
+		# CONFIG FOR UNIAXIAL COMPRESSION
+		# config['interpretation'] = {}
+		# config['interpretation']['uniaxial loading'] = {}
+		# nconf = config['interpretation']['uniaxial loading']
+		# nconf['moduli'] = {}
+		# nconf['moduli']['Young'] = {}
+		# nconf['moduli']['Young']['x'] = 'Ex'
+		# nconf['moduli']['Young']['y'] = 'SigD'
+		# nconf['moduli']['Poisson'] = {}
+		# nconf['moduli']['Poisson']['x'] = 'Ex'
+		# nconf['moduli']['Poisson']['y'] = 'Ey'
+		# SIMPLE CONFIG FOR END-CAPS
+		# config['end-caps'] = {}
+		# config['end-caps']['no end caps'] = {}
+		# nconf = config['end-caps']['no end caps']
+		# nconf['length'] = 0
+		# nconf['vP'] = 100
+		# nconf['vS'] = 100
+		# WRITE
+		# config.write()
+		# READ CONFIG
+		tests = config['interpretation'].keys()
+		ecconf = config['end-caps'].keys()
+		self.testLine.setValues(tests)
+		self.capsLine.setValues(ecconf)
+
 	def setupGUI(self):
 		self.setWindowTitle("Interpretation settings")
 		self.setGeometry(500, 300, 350, 200)
@@ -51,13 +81,13 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		### LEFT COLUMN
 		self.leftLabel = QtGui.QLabel('Static')
 		self.testLine = LineWidget(type='list',label='Test')
-		self.npoints = LineWidget(type='value',label='Number of points')
+		self.interval = LineWidget(type='value',label='Averaging interval')
 		emptyLabel = QtGui.QLabel('')
 		emptyLabel.setMinimumSize(15,37)
 		self.okButton = QtGui.QPushButton("OK")
 		self.leftLayout.addWidget(self.leftLabel)
 		self.leftLayout.addWidget(self.testLine)
-		self.leftLayout.addWidget(self.npoints)
+		self.leftLayout.addWidget(self.interval)
 		self.leftLayout.addWidget(emptyLabel)
 		self.leftLayout.addWidget(self.okButton)
 		### RIGHT COLUMN
@@ -72,8 +102,8 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		self.rightLayout.addWidget(self.capsLine)
 		self.rightLayout.addWidget(self.cancelButton)
 		### SET VALUES
-		self.testLine.setValues(['Uniaxial loading','Hydrostatic loading'])
-		self.npoints.setValues(10)
+		# self.testLine.setValues(['Uniaxial loading','Hydrostatic loading'])
+		# self.npoints.setValues(10)
 
 if __name__ == '__main__':
 	App = QtGui.QApplication(sys.argv)

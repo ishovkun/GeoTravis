@@ -31,6 +31,7 @@ class CParameterTree(pg.TreeWidget):
 	'''
 	Tree with 3 columns:
 		parameter name, checkbox, color button
+		-- added option to ad a group
 	'''
 	sigStateChanged = QtCore.Signal(object) # emitted when color changed
 	def __init__(self,name=None,items=None,colors=None):
@@ -60,8 +61,16 @@ class CParameterTree(pg.TreeWidget):
 		if items: self.addItems(items,colors)
 		
 			
-	def addItems(self, items,colors=None,indent=5):
+	def addItems(self, items,colors=None,group=None,indent=5):
+		'''
+		items - list of names
+		colors - list of colors (can be None)
+		group - name of the group. if None, items ain't grouped
+		'''
 		print 'Setting up tree'
+		if group:
+			header = pg.TreeWidgetItem([group])
+			self.header.addChild(header)
 		k = 0
 		for item in items:
 			child = pg.TreeWidgetItem([item])
@@ -107,6 +116,7 @@ if __name__ == '__main__':
 	# tree = CParameterTree(name='Data',items=names,colors=col)
 	tree.clear()
 	tree.addItems(names,col)
+	# tree.addItems(names,col,group='Static')
 	tree.show()
 	# print 'here'
 	QtGui.QApplication.instance().exec_()

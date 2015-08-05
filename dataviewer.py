@@ -708,13 +708,13 @@ class DataViewer(QtGui.QWidget):
     	self.calcPlot.activateWindow()
 
 if __name__ == '__main__':
-    ViewerApp = QtGui.QApplication(sys.argv)
+    App = QtGui.QApplication(sys.argv)
     # pg.mkQApp()
     win = DataViewer()
     win.showMaximized()
     # win.showFullScreen()
     win.show()
-    ViewerApp.exec_()
+    App.exec_()
     
     
 
