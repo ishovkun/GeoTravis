@@ -31,7 +31,11 @@ class BindingWidget(QtGui.QWidget):
         config['moduli']['Young'] = {}
         config['moduli']['Young']['x'] = 'Ex'
         config['moduli']['Young']['y'] = 'SigD'
-        config['moduli']['Young']['units'] = 'psi'
+        # config['moduli']['Young']['units'] = 'psi'
+        config['moduli']['Poisson'] = {}
+        config['moduli']['Poisson']['x'] = 'Ex'
+        config['moduli']['Poisson']['y'] = 'Ey'
+        # config['moduli']['Poisson']['units'] = 'psi'
         config['units'] = {}
         config['units']['Young'] = 'psi'
         config['units']['Young_x'] = 'psi'
@@ -45,8 +49,8 @@ class BindingWidget(QtGui.QWidget):
         self.config = config
         self.time = self.gv.data['Time']
         self.interval = 100.
-        self.sampLength = 0.12
-        self.density = 270
+        self.sampLength = 0.07
+        self.density = 2700
     def run(self):
         self.show()
         self.setConfig()
@@ -181,8 +185,12 @@ class BindingWidget(QtGui.QWidget):
                 if group=='Static':
                     if self.plotVsXAction.isChecked():
                         y = self.smoduli[key][ind]
+                        yName = key
+                        yUnits = self.config['units'][key]
                     elif self.plotVsYAction.isChecked():
+                        xName = key
                         x = self.smoduli[key][ind]
+                        xUnits = self.config['units'][key]
                 elif group=='Dynamic':
                     if self.plotVsXAction.isChecked():
                         y = self.dmoduli[key][ind]
@@ -193,8 +201,8 @@ class BindingWidget(QtGui.QWidget):
                         xName = key
                         xUnits = self.config['units'][key]
                 self.plt.plot(x,y,pen=linestyle)
-                self.plt.setLabel('left',yName,**AxisLabelStyle)
-                self.plt.setLabel('bottom',xName,**AxisLabelStyle)
+                self.plt.setLabel('left',yName,units = yUnits,**AxisLabelStyle)
+                self.plt.setLabel('bottom',xName,units = xUnits,**AxisLabelStyle)
 
         if self.autoScaleAction.isChecked():
             self.plt.enableAutoRange()
@@ -237,6 +245,7 @@ class BindingWidget(QtGui.QWidget):
         splitter = QtGui.QSplitter()
         splitter.setOrientation(QtCore.Qt.Horizontal)
         self.tree = CParameterTree(name='Elastic moduli')
+
         self.sublayout = pg.GraphicsLayoutWidget()
         # 
         self.layout.addWidget(splitter)
@@ -245,8 +254,9 @@ class BindingWidget(QtGui.QWidget):
         self.plt = self.sublayout.addPlot()
         setupPlot.setup_plot(self.plt)
         #
-        splitter.setSizes([int(self.width()*0.3),
-            int(self.width()*0.7),
+        self.tree.setGeometry(0,0,200,15)
+        splitter.setSizes([int(self.width()*0.4),
+            int(self.width()*0.6),
             ])
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)

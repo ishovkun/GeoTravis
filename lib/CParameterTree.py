@@ -62,6 +62,7 @@ class CParameterTree(pg.TreeWidget):
 		# self.setColumnWidth (0, 100)
 		# self.setColumnWidth (1, 50)
 		# self.setColumnWidth (2, 70)
+		self.setColumnWidth (3, 5)
 		if items is not None: self.names = items
 		else: self.names = []
 		self.items = {} # main widgets
