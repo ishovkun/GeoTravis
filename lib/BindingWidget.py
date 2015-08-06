@@ -174,8 +174,8 @@ class BindingWidget(QtGui.QWidget):
                         x = self.dmoduli[key][ind]
                         xName = key + ' (' + self.config['units'][key] + ')'
                 self.plt.plot(x,y,pen=linestyle)
-                self.plt.setLavel('left',yName,**AxisLabelStyle)
-                self.plt.setLavel('Bottom',xName,**AxisLabelStyle)
+                self.plt.setLabel('left',yName,**AxisLabelStyle)
+                self.plt.setLabel('bottom',xName,**AxisLabelStyle)
 
         if self.autoScaleAction.isChecked():
             self.plt.enableAutoRange()
