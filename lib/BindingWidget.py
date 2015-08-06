@@ -56,18 +56,18 @@ class BindingWidget(QtGui.QWidget):
     def setupMenu(self):
         # clear y axis menu and groups
         self.parMenu.clear()
-        for action in self.ParameterGroup.actions():
-            self.ParameterGroup.removeAction(action)
-        self.ParameterActions = {}
+        for action in self.parameterGroup.actions():
+            self.parameterGroup.removeAction(action)
+        self.parameterActions = {}
         # assign new actions
         for key in self.gv.data.keys():
             action = QtGui.QAction(key,self,checkable=True)
-            action.setActionGroup(self.ParameterGroup)
+            action.setActionGroup(self.parameterGroup)
             self.parMenu.addAction(action)
-            self.ParameterActions[key] = action
+            self.parameterActions[key] = action
             action.triggered.connect(self.plot)
         try:
-            self.ParameterActions['Time'].setChecked(True)
+            self.parameterActions['Time'].setChecked(True)
         except: pass
 
     def getSonicTimes(self):
@@ -133,17 +133,26 @@ class BindingWidget(QtGui.QWidget):
         interval = self.gv.getSliderState()
         ind = (self.itimes>=interval[0]) & (self.itimes<=interval[1])
         active = self.tree.activeItems()
-        # arr1 = self.data[self.Parameter()]
-        # if self.plotVsXAction.isChecked():
-        #     x = self.data[self.Parameter()]
+        if self.plotVsXAction.isChecked():
+            x = self.gdata[self.parameter()][ind]
+        elif self.plotVsYAction.isChecked():
+            y = self.gdata[self.parameter()][ind]
         for group in active.keys():
             for key in active[group]:
                 color = self.tree.groups[group]['colors'][key].getColor()
                 linestyle = pg.mkPen(color=color, width=3)
                 if group=='Static':
-                    self.plt.plot(self.itimes[ind],self.smoduli[key][ind],pen=linestyle)
+                    if self.plotVsXAction.isChecked():
+                        y = self.smoduli[key][ind]
+                    elif self.plotVsYAction.isChecked():
+                        x = self.smoduli[key][ind]
+                    # self.plt.plot(self.itimes[ind],self.smoduli[key][ind],pen=linestyle)
                 elif group=='Dynamic':
-                    self.plt.plot(self.itimes[ind],self.dmoduli[key][ind],pen=linestyle)
+                    if self.plotVsXAction.isChecked():
+                        y = self.dmoduli[key][ind]
+                    elif self.plotVsYAction.isChecked():
+                        x = self.dmoduli[key][ind]
+                self.plt.plot(x,y,pen=linestyle)
         if self.autoScaleAction.isChecked():
             self.plt.enableAutoRange()
 
@@ -153,9 +162,9 @@ class BindingWidget(QtGui.QWidget):
         self.tree.addItems(self.dmoduli.keys(),group='Dynamic')
         self.tree.addItems(self.smoduli.keys(),group='Static')
 
-    def Parameter():
-        for key in self.ParameterActions.keys():
-            if self.ParameterActions[key].isChecked(): return key
+    def parameter(self):
+        for key in self.parameterActions.keys():
+            if self.parameterActions[key].isChecked(): return key
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))
         pg.setConfigOption('foreground',(0,0,0))
@@ -180,7 +189,7 @@ class BindingWidget(QtGui.QWidget):
         self.autoScaleAction = QtGui.QAction('Auto scale',self,checkable=True)
         self.autoScaleAction.setChecked(True)
         self.viewMenu.addAction(self.autoScaleAction)
-        self.ParameterGroup = QtGui.QActionGroup(self)
+        self.parameterGroup = QtGui.QActionGroup(self)
         # widgets
         splitter = QtGui.QSplitter()
         splitter.setOrientation(QtCore.Qt.Horizontal)
