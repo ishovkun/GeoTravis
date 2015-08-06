@@ -256,7 +256,7 @@ class GeoTravis(DataViewer):
             # trsIndices for now are just all indices for sonic table
             self.trsIndices[wave] = np.arange(len(self.sTimes[wave]))
         self.gsIndices = self.sindices
-
+    
 
     def enableSonicButton(self):
         self.showSonicButton.setDisabled(True)

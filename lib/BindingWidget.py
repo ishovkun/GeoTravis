@@ -11,7 +11,8 @@ psi = 6894.75729
 class BindingWidget(QtGui.QWidget):
     def __init__(self,parents=[None,None]):
         super(BindingWidget, self).__init__(None,
-        	QtCore.Qt.WindowStaysOnTopHint)
+            )
+        	# QtCore.Qt.WindowStaysOnTopHint)
         self.setupGUI()
         self.smoduli = {} # static moduli
         self.dmoduli = {} # dynamic moduli
@@ -37,7 +38,8 @@ class BindingWidget(QtGui.QWidget):
         self.getSonicTimes()
         self.getSlopes()
         self.getDynamic()
-        self.fillTree()
+        self.setupTree()
+        self.tree.sigStateChanged.connect(self.plot)
         self.plot()
     def getSonicTimes(self):
         '''
@@ -100,10 +102,22 @@ class BindingWidget(QtGui.QWidget):
         interval_parameter = self.gv.modparams.param('Interval').value()
         interval = self.gv.getSliderState()
         ind = (self.itimes>=interval[0]) & (self.itimes<=interval[1])
-        self.plt.plot(self.itimes[ind],self.smoduli['Young'][ind],pen=(0,0,0))
-        # self.plt.plot(self.itimes[ind],self.moduli['Young'][ind],
-        #     pen=(255,0,0))
+        active = self.tree.activeItems()
+        for group in active.keys():
+            for key in active[group]:
+                color = self.tree.groups[group]['colors'][key].getColor()
+                linestyle = pg.mkPen(color=color, width=3)
+                if group=='Static':
+                    self.plt.plot(self.itimes[ind],self.smoduli[key][ind],pen=linestyle)
+                elif group=='Dynamic':
+                    self.plt.plot(self.itimes[ind],self.dmoduli[key][ind],pen=linestyle)
         self.plt.enableAutoRange()
+
+    def setupTree(self):
+        # for mod in self.dmoduli:
+        self.tree.clear()
+        self.tree.addItems(self.dmoduli.keys(),group='Dynamic')
+        self.tree.addItems(self.smoduli.keys(),group='Static')
 
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))
