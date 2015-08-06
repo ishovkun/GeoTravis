@@ -116,7 +116,7 @@ class BindingWidget(QtGui.QWidget):
         for wave in WaveTypes:
             ### correct for end-caps
             corr = float(self.capsconf[wave])
-            times = (self.sv.aTimes[wave] - corr)*1e+6
+            times = (self.sv.aTimes[wave] - corr)*1e-6
             speed = self.sampLength/times
             interp = interp1d(self.gv.sTimes[wave],speed,bounds_error=False)
             ispeeds[wave] = interp(self.itimes)
