@@ -131,6 +131,7 @@ class BindingWidget(QtGui.QWidget):
     def plot(self):
         if not self.isVisible(): return 0
         self.plt.clear()
+        self.plt.showGrid(x=True, y=True)
         interval_parameter = self.gv.modparams.param('Interval').value()
         interval = self.gv.getSliderState()
         ind = (self.itimes>=interval[0]) & (self.itimes<=interval[1])
