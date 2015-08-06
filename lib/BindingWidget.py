@@ -31,11 +31,15 @@ class BindingWidget(QtGui.QWidget):
         config['moduli']['Young']['x'] = 'Ex'
         config['moduli']['Young']['y'] = 'SigD'
         config['moduli']['Young']['units'] = 'psi'
+        config['units'] = {}
+        config['units']['Young'] = 'psi'
+        config['units']['Shear'] = 'psi'
+        config['units']['Poisson'] = ''
         self.config = config
         self.time = self.gv.data['Time']
         self.interval = 100.
         self.sampLength = 0.12
-        self.density = 2700
+        self.density = 270
         self.units = []
         self.units['Young']
     def run(self):
