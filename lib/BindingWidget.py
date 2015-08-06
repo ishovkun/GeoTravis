@@ -168,10 +168,12 @@ class BindingWidget(QtGui.QWidget):
         par = self.parameter()
         if self.plotVsXAction.isChecked():
             x = self.gdata[par][ind]
-            xName = par + ' (' + self.gv.units[par] + ')'
+            xName = par
+            xUnits = self.gv.units[par]
         elif self.plotVsYAction.isChecked():
             y = self.gdata[par][ind]
-            yName = par + ' (' + self.gv.units[par] + ')'
+            yName = par
+            yUnits = self.gv.units[par]
         for group in active.keys():
             for key in active[group]:
                 color = self.tree.groups[group]['colors'][key].getColor()
@@ -184,10 +186,12 @@ class BindingWidget(QtGui.QWidget):
                 elif group=='Dynamic':
                     if self.plotVsXAction.isChecked():
                         y = self.dmoduli[key][ind]
-                        yName = key + ' (' + self.config['units'][key] + ')'
+                        yName = key
+                        yUnits = self.config['units'][key]
                     elif self.plotVsYAction.isChecked():
                         x = self.dmoduli[key][ind]
-                        xName = key + ' (' + self.config['units'][key[:-2]] + ')'
+                        xName = key
+                        xUnits = self.config['units'][key]
                 self.plt.plot(x,y,pen=linestyle)
                 self.plt.setLabel('left',yName,**AxisLabelStyle)
                 self.plt.setLabel('bottom',xName,**AxisLabelStyle)
