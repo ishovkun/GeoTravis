@@ -22,6 +22,8 @@ class BindingWidget(QtGui.QWidget):
             self.gv.slider.sigGradientChanged.connect(self.plot)
         except: pass
         self.autoScaleAction.triggered.connect(self.plot)
+        self.plotVsXAction.triggered.connect(self.plot)
+        self.plotVsYAction.triggered.connect(self.plot)
     def setConfig(self):
         config = {}
         config['moduli'] = {}
