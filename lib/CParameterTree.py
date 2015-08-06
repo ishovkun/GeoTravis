@@ -102,7 +102,7 @@ class CParameterTree(pg.TreeWidget):
 								  'colors':{},
 								}
 		k = 0
-		for item in items:
+		for item in sorted(items):
 			child = GroupedTreeItem([item])
 			child.setGroup(group)
 			self.items[item] = child
