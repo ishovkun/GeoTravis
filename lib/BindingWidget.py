@@ -34,8 +34,14 @@ class BindingWidget(QtGui.QWidget):
         config['moduli']['Young']['units'] = 'psi'
         config['units'] = {}
         config['units']['Young'] = 'psi'
+        config['units']['Young_x'] = 'psi'
+        config['units']['Young_y'] = 'psi'
         config['units']['Shear'] = 'psi'
+        config['units']['Shear_x'] = 'psi'
+        config['units']['Shear_y'] = 'psi'
         config['units']['Poisson'] = ''
+        config['units']['Poisson_x'] = ''
+        config['units']['Poisson_y'] = ''
         self.config = config
         self.time = self.gv.data['Time']
         self.interval = 100.
@@ -123,23 +129,33 @@ class BindingWidget(QtGui.QWidget):
             speed = self.sampLength/self.sv.aTimes[wave]*1e+6
             interp = interp1d(self.gv.sTimes[wave],speed,bounds_error=False)
             ispeeds[wave] = interp(self.itimes)
-        Ct = ispeeds['Sy'] 
+        Ctx = ispeeds['Sx'] 
+        Cty = ispeeds['Sy'] 
         Cl = ispeeds['P'] 
         rho = self.density
-        G = Ct**2*rho
-        lamb = (Cl**2-Ct**2)*rho
-        E = G*(3*lamb + 2*G)/(lamb + G)
-        nu = lamb/2/(lamb + G)
+        Gx = Ctx**2*rho
+        Gy = Cty**2*rho
+        lambx = (Cl**2-Ctx**2)*rho
+        lamby = (Cl**2-Cty**2)*rho
+        Ex = Gx*(3*lambx + 2*Gx)/(lambx + Gx)
+        Ey = Gy*(3*lamby + 2*Gy)/(lamby + Gy)
+        nux = lambx/2/(lambx + Gx)
+        nuy = lamby/2/(lamby + Gy)
         if self.config['units']['Young'] == 'psi':
-            self.dmoduli['Young'] = E/psi
+            self.dmoduli['Young_x'] = Ex/psi
+            self.dmoduli['Young_y'] = Ey/psi
         elif self.config['units']['Young'] == 'Pa':
-            self.dmoduli['Young'] = E
+            self.dmoduli['Young_x'] = Ex
+            self.dmoduli['Young_y'] = Ey
         if self.config['units']['Shear'] == 'psi':
-            self.dmoduli['Shear'] = G/psi
+            self.dmoduli['Shear_x'] = Gx/psi
+            self.dmoduli['Shear_y'] = Gy/psi
         if self.config['units']['Shear'] == 'Pa':
-            self.dmoduli['Shear'] = G
+            self.dmoduli['Shear_x'] = Gx
+            self.dmoduli['Shear_y'] = Gy
         if self.config['units']['Poisson'] == '':
-            self.dmoduli['Poisson'] = nu
+            self.dmoduli['Poisson_x'] = nux
+            self.dmoduli['Poisson_y'] = nuy
 
     def plot(self):
         if not self.isVisible(): return 0
@@ -165,14 +181,13 @@ class BindingWidget(QtGui.QWidget):
                         y = self.smoduli[key][ind]
                     elif self.plotVsYAction.isChecked():
                         x = self.smoduli[key][ind]
-                    # self.plt.plot(self.itimes[ind],self.smoduli[key][ind],pen=linestyle)
                 elif group=='Dynamic':
                     if self.plotVsXAction.isChecked():
                         y = self.dmoduli[key][ind]
                         yName = key + ' (' + self.config['units'][key] + ')'
                     elif self.plotVsYAction.isChecked():
                         x = self.dmoduli[key][ind]
-                        xName = key + ' (' + self.config['units'][key] + ')'
+                        xName = key + ' (' + self.config['units'][key[:-2]] + ')'
                 self.plt.plot(x,y,pen=linestyle)
                 self.plt.setLabel('left',yName,**AxisLabelStyle)
                 self.plt.setLabel('bottom',xName,**AxisLabelStyle)
