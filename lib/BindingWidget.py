@@ -32,8 +32,8 @@ class BindingWidget(QtGui.QWidget):
         self.config = testconf
         self.capsconf = capsconf
         self.interval = atime
-        self.sampLength = length
-        self.density = dens
+        self.sampLength = length/100.
+        self.density = dens*1000.
         self.time = self.gv.data[time]
     def run(self):
         self.show()
@@ -113,7 +113,13 @@ class BindingWidget(QtGui.QWidget):
     def getDynamic(self):
         ispeeds = {}
         for wave in WaveTypes:
-            speed = self.sampLength/self.sv.aTimes[wave]*1e+6
+            ### correct for end-caps
+            if wave == 'P':
+                corr = float(self.capsconf['length'])/float(self.capsconf['vP'])
+            else:
+                corr = float(self.capsconf['length'])/float(self.capsconf['vS'])
+            times = self.sv.aTimes[wave]*1e+6 - corr
+            speed = self.sampLength/times
             interp = interp1d(self.gv.sTimes[wave],speed,bounds_error=False)
             ispeeds[wave] = interp(self.itimes)
         Ctx = ispeeds['Sx'] 
