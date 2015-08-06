@@ -30,6 +30,14 @@ class LineWidget(QtGui.QWidget):
 			self.box.addItems(values)
 		elif self.type == 'value':
 			self.box.setValue(values)
+	def value(self):
+		if self.type == 'text':
+			return self.box.text()
+		elif self.type == 'list':
+			return self.box.currentText()
+		elif self.type == 'value':
+			return self.box.value()
+
 
 class InterpretationSettingsWidget(QtGui.QWidget):
 	def __init__(self):
@@ -37,9 +45,18 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 			QtCore.Qt.WindowStaysOnTopHint)
 		self.setupGUI()
 		self.loadConfig()
+		self.testconf = None
+		self.capsconf = None
+		self.dens = None
+		self.length = None
+		self.atime = None
+		self.okButton.pressed.connect(self.ok)
+		self.cancelButton.pressed.connect(self.cancel)
 	def loadConfig(self):
 		config = ConfigObj('config.ini')
 		# CONFIG FOR UNIAXIAL COMPRESSION
+		# config['Main parameters'] = {}
+		# config['Main parameters']['time'] = 'Time'
 		# config['interpretation'] = {}
 		# config['interpretation']['uniaxial loading'] = {}
 		# nconf = config['interpretation']['uniaxial loading']
@@ -47,30 +64,51 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		# nconf['moduli']['Young'] = {}
 		# nconf['moduli']['Young']['x'] = 'Ex'
 		# nconf['moduli']['Young']['y'] = 'SigD'
-		# nconf['moduli']['Young']['units'] = 'psi'
 		# nconf['moduli']['Poisson'] = {}
 		# nconf['moduli']['Poisson']['x'] = 'Ex'
 		# nconf['moduli']['Poisson']['y'] = 'Ey'
-		# nconf['moduli']['Poisson']['units'] = ''
 		# nconf['Oscilloscope units'] = 'mus'
 		# nconf['units'] = {}
 		# nconf['units']['Young'] = 'psi'
+		# nconf['units']['Young_x'] = 'psi'
+		# nconf['units']['Young_y'] = 'psi'
 		# nconf['units']['Shear'] = 'psi'
+		# nconf['units']['Shear_x'] = 'psi'
+		# nconf['units']['Shear_y'] = 'psi'
 		# nconf['units']['Poisson'] = ''
-		# # SIMPLE CONFIG FOR END-CAPS
+		# nconf['units']['Poisson_x'] = ''
+		# nconf['units']['Poisson_y'] = ''
+		# SIMPLE CONFIG FOR END-CAPS
 		# config['end-caps'] = {}
-		# config['end-caps']['no end caps'] = {}
-		# nconf = config['end-caps']['no end caps']
+		# config['end-caps']['no_end_caps'] = {}
+		# nconf = config['end-caps']['no_end_caps']
 		# nconf['length'] = 0
 		# nconf['vP'] = 100
 		# nconf['vS'] = 100
-		# # # WRITE
+		# # WRITE
 		# config.write()
 		# READ CONFIG
+		self.config = config
 		tests = config['interpretation'].keys()
 		ecconf = config['end-caps'].keys()
 		self.testLine.setValues(tests)
 		self.capsLine.setValues(ecconf)
+		self.interval.setValues(100.)
+		self.lengthLine.setValues(5.)
+		self.densityLine.setValues(2.7)
+
+	def ok(self):
+		test = self.testLine.value()
+		self.testconf = self.config['interpretation'][test]
+		caps = self.capsLine.value()
+		self.capsconf = self.config['end-caps'][caps]
+		self.dens = self.densityLine.value()
+		self.length = self.lengthLine.value()
+		self.atime = self.interval.value()
+		self.close()
+
+	def cancel(self):
+		self.close()
 
 	def setupGUI(self):
 		self.setWindowTitle("Interpretation settings")
@@ -88,7 +126,7 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		### LEFT COLUMN
 		self.leftLabel = QtGui.QLabel('Static')
 		self.testLine = LineWidget(type='list',label='Test')
-		self.interval = LineWidget(type='value',label='Averaging interval')
+		self.interval = LineWidget(type='value',label='Averaging interval (s)')
 		emptyLabel = QtGui.QLabel('')
 		emptyLabel.setMinimumSize(15,37)
 		self.okButton = QtGui.QPushButton("OK")
@@ -99,9 +137,9 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		self.leftLayout.addWidget(self.okButton)
 		### RIGHT COLUMN
 		self.rightLabel = QtGui.QLabel('Dynamic')
-		self.densityLine = LineWidget(type='value',label='Bulk density')
-		self.lengthLine = LineWidget(type='value',label='Sample length')
-		self.capsLine = LineWidget(type='list',label='End caps config')
+		self.densityLine = LineWidget(type='value',label='Bulk density (g/cm3)')
+		self.lengthLine = LineWidget(type='value',label='Sample length (cm)')
+		self.capsLine = LineWidget(type='list',label='End-caps config')
 		self.cancelButton = QtGui.QPushButton("Cancel")
 		self.rightLayout.addWidget(self.rightLabel)
 		self.rightLayout.addWidget(self.densityLine)
@@ -111,6 +149,7 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		### SET VALUES
 		# self.testLine.setValues(['Uniaxial loading','Hydrostatic loading'])
 		# self.npoints.setValues(10)
+
 
 if __name__ == '__main__':
 	App = QtGui.QApplication(sys.argv)

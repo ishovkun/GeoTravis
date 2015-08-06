@@ -6,6 +6,8 @@ from PySide import QtGui, QtCore
 import setupPlot
 from CParameterTree import CParameterTree
 from LabelStyles import AxisLabelStyle
+from Colors import DynamicModuliColors,StaticModuliColors
+
 WaveTypes = ['P','Sx','Sy']
 psi = 6894.75729
 
@@ -25,33 +27,16 @@ class BindingWidget(QtGui.QWidget):
         self.autoScaleAction.triggered.connect(self.plot)
         self.plotVsXAction.triggered.connect(self.plot)
         self.plotVsYAction.triggered.connect(self.plot)
-    def setConfig(self):
-        config = {}
-        config['moduli'] = {}
-        config['moduli']['Young'] = {}
-        config['moduli']['Young']['x'] = 'Ex'
-        config['moduli']['Young']['y'] = 'SigD'
-        config['moduli']['Poisson'] = {}
-        config['moduli']['Poisson']['x'] = 'Ex'
-        config['moduli']['Poisson']['y'] = '-Ey'
-        config['units'] = {}
-        config['units']['Young'] = 'psi'
-        config['units']['Young_x'] = 'psi'
-        config['units']['Young_y'] = 'psi'
-        config['units']['Shear'] = 'psi'
-        config['units']['Shear_x'] = 'psi'
-        config['units']['Shear_y'] = 'psi'
-        config['units']['Poisson'] = ''
-        config['units']['Poisson_x'] = ''
-        config['units']['Poisson_y'] = ''
-        self.config = config
-        self.time = self.gv.data['Time']
-        self.interval = 100.
-        self.sampLength = 0.07
-        self.density = 2700
+    def setConfig(self,testconf,capsconf,
+        dens,length,atime,time='Time'):
+        self.config = testconf
+        self.capsconf = capsconf
+        self.interval = atime
+        self.sampLength = length
+        self.density = dens
+        self.time = self.gv.data[time]
     def run(self):
         self.show()
-        self.setConfig()
         self.getSonicTimes()
         self.interpolateGData()
         self.getSlopes()
@@ -117,8 +102,6 @@ class BindingWidget(QtGui.QWidget):
             self.smoduli[mod] = np.zeros(N)
             xarr = self.parseExpression(config['moduli'][mod]['x'])
             yarr = self.parseExpression(config['moduli'][mod]['y'])
-            # xarr = self.gv.data[config['moduli'][mod]['x']]
-            # yarr = self.gv.data[config['moduli'][mod]['y']]
             for i in xrange(N):
                 ind = abs(self.time-self.itimes[i])<self.interval/2
                 x = xarr[ind]
@@ -210,8 +193,8 @@ class BindingWidget(QtGui.QWidget):
     def setupTree(self):
         # for mod in self.dmoduli:
         self.tree.clear()
-        self.tree.addItems(self.dmoduli.keys(),group='Dynamic')
-        self.tree.addItems(self.smoduli.keys(),group='Static')
+        self.tree.addItems(self.dmoduli.keys(),group='Dynamic',colors=DynamicModuliColors)
+        self.tree.addItems(self.smoduli.keys(),group='Static',colors=StaticModuliColors)
 
     def parameter(self):
         for key in self.parameterActions.keys():

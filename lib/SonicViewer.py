@@ -15,6 +15,7 @@ from TableWidget import TableWidget
 from TriplePlotWidget import TriplePlotWidget
 from GradientEditorWidget import GradientEditorWidget
 from BindingWidget import BindingWidget
+from InterpretationSettingsWidget import InterpretationSettingsWidget
 
 xAxisName = 'Oscilloscope time (μs)'
 fXAxisName = 'Frequency (MHz)'
@@ -57,6 +58,7 @@ class SonicViewer(QtGui.QWidget):
 		self.fWidget = TriplePlotWidget()
 		self.phWidget = TriplePlotWidget()
 		self.bWidget = BindingWidget(parents=[parent,self])
+		self.isWidget = InterpretationSettingsWidget()
 		self.data = {'P':{},'Sx':{},'Sy':{}}
 		self.currentShifts = {'P':0,'Sx':0,'Sy':0}
 		self.connectPlotButtons()
@@ -64,6 +66,7 @@ class SonicViewer(QtGui.QWidget):
 		self.gw = self.gEdit.sgw
 		self.fgw = self.gEdit.fgw
 		self.pgw = self.gEdit.pgw
+		# sel
 		self.gw.restoreState(Gradients['hot'])
 		self.fgw.restoreState(Gradients['hot'])
 		self.pgw.restoreState(Gradients['hot'])
@@ -83,12 +86,23 @@ class SonicViewer(QtGui.QWidget):
 		# self.showArrivalsButton.triggered.connect(self.plot)
 		self.waveFormButton.triggered.connect(lambda: self.setMode('WaveForms'))
 		self.contourButton.triggered.connect(lambda: self.setMode('Contours'))
-		self.moduliButton.triggered.connect(self.bWidget.run)
+		self.moduliButton.triggered.connect(self.isWidget.show)
+		self.isWidget.okButton.pressed.connect(self.runBindingWidget)
+		# self.moduliButton.triggered.connect(self.bWidget.run)
 		for wave in WaveTypes:
 			self.params[wave].param('Arrival times').param('Mpoint').sigValueChanged.connect(self.recomputeArrivals)
 			self.params[wave].param('Arrival times').param('BTA').sigValueChanged.connect(self.recomputeArrivals)
 			self.params[wave].param('Arrival times').param('ATA').sigValueChanged.connect(self.recomputeArrivals)
 			self.params[wave].param('Arrival times').param('DTA').sigValueChanged.connect(self.recomputeArrivals)
+	def runBindingWidget(self):
+		testconf = self.isWidget.testconf
+		capsconf = self.isWidget.capsconf
+		if testconf == None: return 0
+		dens = self.isWidget.dens
+		length = self.isWidget.length
+		atime = self.isWidget.atime
+		self.bWidget.setConfig(testconf,capsconf,dens,length,atime)
+		self.bWidget.run()
 	def setData(self,data):
 		'''
 		data is a dictionary with keys: P,Sx,Sy
