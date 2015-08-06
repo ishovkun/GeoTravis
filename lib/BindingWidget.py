@@ -31,11 +31,9 @@ class BindingWidget(QtGui.QWidget):
         config['moduli']['Young'] = {}
         config['moduli']['Young']['x'] = 'Ex'
         config['moduli']['Young']['y'] = 'SigD'
-        # config['moduli']['Young']['units'] = 'psi'
         config['moduli']['Poisson'] = {}
         config['moduli']['Poisson']['x'] = 'Ex'
-        config['moduli']['Poisson']['y'] = 'Ey'
-        # config['moduli']['Poisson']['units'] = 'psi'
+        config['moduli']['Poisson']['y'] = '-Ey'
         config['units'] = {}
         config['units']['Young'] = 'psi'
         config['units']['Young_x'] = 'psi'
@@ -117,8 +115,10 @@ class BindingWidget(QtGui.QWidget):
         config = self.config
         for mod in self.config['moduli'].keys():
             self.smoduli[mod] = np.zeros(N)
-            xarr = self.gv.data[config['moduli']['Young']['x']]
-            yarr = self.gv.data[config['moduli']['Young']['y']]
+            xarr = self.parseExpression(config['moduli'][mod]['x'])
+            yarr = self.parseExpression(config['moduli'][mod]['y'])
+            # xarr = self.gv.data[config['moduli'][mod]['x']]
+            # yarr = self.gv.data[config['moduli'][mod]['y']]
             for i in xrange(N):
                 ind = abs(self.time-self.itimes[i])<self.interval/2
                 x = xarr[ind]
@@ -216,6 +216,25 @@ class BindingWidget(QtGui.QWidget):
     def parameter(self):
         for key in self.parameterActions.keys():
             if self.parameterActions[key].isChecked(): return key
+
+    def parseExpression(self,expr):
+        '''
+        computes array corresponding to expression
+        '''
+        if expr=='': 
+            return 0
+        if 'import' in expr: return 0
+        if 'sys' in expr: return 0
+        if 'os' in expr: return 0
+        for key in self.gv.data.keys():
+            exec('%s=self.gv.data[\'%s\']'%(key,key))
+            # print key
+        try: 
+            return eval(expr)
+        except: 
+            # print self.data.keys()
+            return 0 
+
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))
         pg.setConfigOption('foreground',(0,0,0))
