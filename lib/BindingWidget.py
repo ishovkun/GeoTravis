@@ -21,6 +21,7 @@ class BindingWidget(QtGui.QWidget):
         try:
             self.gv.slider.sigGradientChanged.connect(self.plot)
         except: pass
+        self.autoScaleAction.triggered.connect(self.plot)
     def setConfig(self):
         config = {}
         config['moduli'] = {}
@@ -36,11 +37,39 @@ class BindingWidget(QtGui.QWidget):
         self.show()
         self.setConfig()
         self.getSonicTimes()
+        self.interpolateGData()
         self.getSlopes()
         self.getDynamic()
         self.setupTree()
+        self.setupMenu()
         self.tree.sigStateChanged.connect(self.plot)
         self.plot()
+
+    def interpolateGData(self):
+        self.gdata = {}
+        print 'Interpolating geomechanical data'
+        for key in self.gv.data.keys():
+            interp = interp1d(self.gv.data['Time'],self.gv.data[key],
+                bounds_error=False)
+            self.gdata[key] = interp(self.itimes)
+
+    def setupMenu(self):
+        # clear y axis menu and groups
+        self.parMenu.clear()
+        for action in self.ParameterGroup.actions():
+            self.ParameterGroup.removeAction(action)
+        self.ParameterActions = {}
+        # assign new actions
+        for key in self.gv.data.keys():
+            action = QtGui.QAction(key,self,checkable=True)
+            action.setActionGroup(self.ParameterGroup)
+            self.parMenu.addAction(action)
+            self.ParameterActions[key] = action
+            action.triggered.connect(self.plot)
+        try:
+            self.ParameterActions['Time'].setChecked(True)
+        except: pass
+
     def getSonicTimes(self):
         '''
         every wave has its own recording time
@@ -51,6 +80,7 @@ class BindingWidget(QtGui.QWidget):
         also, there can be different amount of sonic data
         for each wave. so must make arrays same length.
         '''
+        print 'Computing times for output'
         l = []
         for wave in WaveTypes:
             l.append(len(self.gv.sTimes[wave]))
@@ -103,6 +133,9 @@ class BindingWidget(QtGui.QWidget):
         interval = self.gv.getSliderState()
         ind = (self.itimes>=interval[0]) & (self.itimes<=interval[1])
         active = self.tree.activeItems()
+        # arr1 = self.data[self.Parameter()]
+        # if self.plotVsXAction.isChecked():
+        #     x = self.data[self.Parameter()]
         for group in active.keys():
             for key in active[group]:
                 color = self.tree.groups[group]['colors'][key].getColor()
@@ -111,7 +144,8 @@ class BindingWidget(QtGui.QWidget):
                     self.plt.plot(self.itimes[ind],self.smoduli[key][ind],pen=linestyle)
                 elif group=='Dynamic':
                     self.plt.plot(self.itimes[ind],self.dmoduli[key][ind],pen=linestyle)
-        self.plt.enableAutoRange()
+        if self.autoScaleAction.isChecked():
+            self.plt.enableAutoRange()
 
     def setupTree(self):
         # for mod in self.dmoduli:
@@ -119,6 +153,9 @@ class BindingWidget(QtGui.QWidget):
         self.tree.addItems(self.dmoduli.keys(),group='Dynamic')
         self.tree.addItems(self.smoduli.keys(),group='Static')
 
+    def Parameter():
+        for key in self.ParameterActions.keys():
+            if self.ParameterActions[key].isChecked(): return key
     def setupGUI(self):
         pg.setConfigOption('background', (255,255,255))
         pg.setConfigOption('foreground',(0,0,0))
@@ -130,9 +167,20 @@ class BindingWidget(QtGui.QWidget):
         self.layout.setMenuBar(self.menuBar)
         # menu actions
         self.viewMenu = self.menuBar.addMenu('View')
-        self.yAxisMenu = self.viewMenu.addMenu('y axis')
-        self.autoScaleAction = QtGui.QAction('Auto scale',self)
+        self.parMenu = self.viewMenu.addMenu('Parameter')
+        self.plotVsMenu = self.viewMenu.addMenu('Plot versus')
+        self.plotVsXAction = QtGui.QAction('x',self,checkable=True)
+        self.plotVsYAction = QtGui.QAction('y',self,checkable=True)
+        self.plotVsGroup = QtGui.QActionGroup(self)
+        self.plotVsXAction.setActionGroup(self.plotVsGroup)
+        self.plotVsYAction.setActionGroup(self.plotVsGroup)
+        self.plotVsMenu.addAction(self.plotVsXAction)
+        self.plotVsMenu.addAction(self.plotVsYAction)
+        self.plotVsXAction.setChecked(True)
+        self.autoScaleAction = QtGui.QAction('Auto scale',self,checkable=True)
+        self.autoScaleAction.setChecked(True)
         self.viewMenu.addAction(self.autoScaleAction)
+        self.ParameterGroup = QtGui.QActionGroup(self)
         # widgets
         splitter = QtGui.QSplitter()
         splitter.setOrientation(QtCore.Qt.Horizontal)
