@@ -5,6 +5,7 @@ import pyqtgraph as pg
 from PySide import QtGui, QtCore
 import setupPlot
 from CParameterTree import CParameterTree
+from LabelStyles import AxisLabelStyle
 WaveTypes = ['P','Sx','Sy']
 psi = 6894.75729
 
@@ -40,8 +41,6 @@ class BindingWidget(QtGui.QWidget):
         self.interval = 100.
         self.sampLength = 0.12
         self.density = 270
-        self.units = []
-        self.units['Young']
     def run(self):
         self.show()
         self.setConfig()
@@ -131,9 +130,16 @@ class BindingWidget(QtGui.QWidget):
         lamb = (Cl**2-Ct**2)*rho
         E = G*(3*lamb + 2*G)/(lamb + G)
         nu = lamb/2/(lamb + G)
-        self.dmoduli['Young'] = E/psi
-        self.dmoduli['Shear'] = G/psi
-        self.dmoduli['Poisson'] = nu
+        if self.config['units']['Young'] == 'psi':
+            self.dmoduli['Young'] = E/psi
+        elif self.config['units']['Young'] == 'Pa':
+            self.dmoduli['Young'] = E
+        if self.config['units']['Shear'] == 'psi':
+            self.dmoduli['Shear'] = G/psi
+        if self.config['units']['Shear'] == 'Pa':
+            self.dmoduli['Shear'] = G
+        if self.config['units']['Poisson'] == '':
+            self.dmoduli['Poisson'] = nu
 
     def plot(self):
         if not self.isVisible(): return 0
@@ -146,10 +152,10 @@ class BindingWidget(QtGui.QWidget):
         par = self.parameter()
         if self.plotVsXAction.isChecked():
             x = self.gdata[par][ind]
-            xName = par + ' ' + self.gv.units(par)
+            xName = par + ' (' + self.gv.units[par] + ')'
         elif self.plotVsYAction.isChecked():
             y = self.gdata[par][ind]
-            yName = xName = par + ' ' + self.gv.units(par)
+            yName = par + ' (' + self.gv.units[par] + ')'
         for group in active.keys():
             for key in active[group]:
                 color = self.tree.groups[group]['colors'][key].getColor()
@@ -163,9 +169,14 @@ class BindingWidget(QtGui.QWidget):
                 elif group=='Dynamic':
                     if self.plotVsXAction.isChecked():
                         y = self.dmoduli[key][ind]
+                        yName = key + ' (' + self.config['units'][key] + ')'
                     elif self.plotVsYAction.isChecked():
                         x = self.dmoduli[key][ind]
+                        xName = key + ' (' + self.config['units'][key] + ')'
                 self.plt.plot(x,y,pen=linestyle)
+                self.plt.setLavel('left',yName,**AxisLabelStyle)
+                self.plt.setLavel('Bottom',xName,**AxisLabelStyle)
+
         if self.autoScaleAction.isChecked():
             self.plt.enableAutoRange()
 
