@@ -125,6 +125,15 @@ class BindingWidget(QtGui.QWidget):
         self.layout = QtGui.QVBoxLayout()
         self.layout.setContentsMargins(0,0,0,0)
         self.setLayout(self.layout)
+        # menu
+        self.menuBar = QtGui.QMenuBar()
+        self.layout.setMenuBar(self.menuBar)
+        # menu actions
+        self.viewMenu = self.menuBar.addMenu('View')
+        self.yAxisMenu = self.viewMenu.addMenu('y axis')
+        self.autoScaleAction = QtGui.QAction('Auto scale',self)
+        self.viewMenu.addAction(self.autoScaleAction)
+        # widgets
         splitter = QtGui.QSplitter()
         splitter.setOrientation(QtCore.Qt.Horizontal)
         self.tree = CParameterTree(name='Elastic moduli')
