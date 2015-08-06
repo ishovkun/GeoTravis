@@ -36,6 +36,8 @@ class BindingWidget(QtGui.QWidget):
         self.interval = 100.
         self.sampLength = 0.12
         self.density = 2700
+        self.units = []
+        self.units['Young']
     def run(self):
         self.show()
         self.setConfig()
