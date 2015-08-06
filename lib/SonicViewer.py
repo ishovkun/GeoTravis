@@ -190,6 +190,7 @@ class SonicViewer(QtGui.QWidget):
 		pBar.setValue(100)
 		self.arrivalsPicked = True
 		self.showArrivalsButton.setDisabled(False)
+		self.moduliButton.setDisabled(False)
 		self.showArrivalsButton.trigger()
 
 	def plot(self,indices=None,yarray=None,yindices=None,
@@ -460,6 +461,7 @@ class SonicViewer(QtGui.QWidget):
 		# INTERPRETATION MENU
 		self.pickArrivalsButton = QtGui.QAction('Pick arrivals',self)
 		self.moduliButton = QtGui.QAction('Elastic moduli',self)
+		self.moduliButton.setDisabled(True)
 
 		self.intMenu.addAction(self.pickArrivalsButton)
 		self.intMenu.addAction(self.moduliButton)
