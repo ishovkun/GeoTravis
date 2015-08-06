@@ -1,3 +1,4 @@
+# coding: UTF-8
 import sys
 import numpy as np
 from scipy.interpolate import interp1d
@@ -114,11 +115,8 @@ class BindingWidget(QtGui.QWidget):
         ispeeds = {}
         for wave in WaveTypes:
             ### correct for end-caps
-            if wave == 'P':
-                corr = float(self.capsconf['length'])/float(self.capsconf['vP'])
-            else:
-                corr = float(self.capsconf['length'])/float(self.capsconf['vS'])
-            times = self.sv.aTimes[wave]*1e+6 - corr
+            corr = float(self.capsconf[wave])
+            times = (self.sv.aTimes[wave] - corr)*1e+6
             speed = self.sampLength/times
             interp = interp1d(self.gv.sTimes[wave],speed,bounds_error=False)
             ispeeds[wave] = interp(self.itimes)

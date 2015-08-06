@@ -23,7 +23,7 @@ from lib.readtrc import read_TRC
 from lib.MultiLine import MultiLine
 from lib.SonicViewer import SonicViewer
 from lib.functions import *
-
+from lib.ConfigureEndCapsWidget import ConfigureEndCapsWidget
 WaveTypes = ['P','Sx','Sy']
 
 BadBindingMessage = '''
@@ -37,7 +37,8 @@ class GeoTravis(DataViewer):
     def __init__(self):
         super(GeoTravis, self).__init__()
         self.SViewer = SonicViewer(self)
-        # self.SViewer.setWindowIcon(QtGui.QIcon('images/Logo.png'))
+        self.SViewer.setWindowIcon(QtGui.QIcon('images/Logo.png'))
+        self.cecw = ConfigureEndCapsWidget()
         # dict for sonic data
         self.sonicData = {'P':{},'Sx':{},'Sy':{}}
         self.trSonicNames = {'P':{},'Sx':{},'Sy':{}}
@@ -45,6 +46,8 @@ class GeoTravis(DataViewer):
         self.allComments = {}
         # indices in geo data corresponding to sonic times within truncated interval
         self.gsIndices = {}
+        self.showSonicButton.triggered.connect(self.showSonicData)
+        self.configureEndCapsButton.triggered.connect(self.cecw.show)
 
     def setupGUI(self):
         print 'Setting up GUI'
@@ -57,12 +60,13 @@ class GeoTravis(DataViewer):
         self.fileMenu.addAction(self.loadSonicButton)
         self.fileMenu.addAction(self.saveButton)
         self.fileMenu.addAction(self.exitButton)
+        self.configureEndCapsButton = QtGui.QAction('Confige end-caps',self)
         # we connect sonic button now since but don't show it yet
         self.showSonicButton = QtGui.QAction('Sonic',self,shortcut='Alt+S')
         self.showSonicButton.setDisabled(True)
         self.viewMenu.addAction(self.showSonicButton)
+        self.prefMenu.addAction(self.configureEndCapsButton)
         # self.sonicMenu.addAction(self.showSonicButton)
-        self.showSonicButton.triggered.connect(self.showSonicData)
         self.pBar = QtGui.QProgressDialog()
         self.pBar.setWindowTitle("Loading sonic data")
         self.pBar.setAutoClose(True)
@@ -256,7 +260,7 @@ class GeoTravis(DataViewer):
             # trsIndices for now are just all indices for sonic table
             self.trsIndices[wave] = np.arange(len(self.sTimes[wave]))
         self.gsIndices = self.sindices
-    
+
 
     def enableSonicButton(self):
         self.showSonicButton.setDisabled(True)

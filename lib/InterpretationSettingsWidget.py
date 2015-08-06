@@ -5,38 +5,7 @@ from PySide import QtCore, QtGui
 import numpy as np
 import re
 from configobj import ConfigObj
-
-class LineWidget(QtGui.QWidget):
-	def __init__(self,type='text',label=''):
-		super(LineWidget,self).__init__()
-		self.type = type
-		self.layout = QtGui.QHBoxLayout()
-		self.setLayout(self.layout)
-		self.label = QtGui.QLabel(label)
-		if type=='text':
-			self.box = QtGui.QLineEdit()
-		elif type == 'list':
-			self.box = QtGui.QComboBox()
-		elif type == 'value':
-			self.box = pg.SpinBox(value=10)
-		self.layout.addWidget(self.label)
-		self.layout.addWidget(self.box)
-	def setLabel(self,text):
-		self.label.setText(text)
-	def setValues(self,values):
-		if self.type == 'text':
-			self.box.setText(values)
-		elif self.type == 'list':
-			self.box.addItems(values)
-		elif self.type == 'value':
-			self.box.setValue(values)
-	def value(self):
-		if self.type == 'text':
-			return self.box.text()
-		elif self.type == 'list':
-			return self.box.currentText()
-		elif self.type == 'value':
-			return self.box.value()
+from LineWidget import LineWidget
 
 
 class InterpretationSettingsWidget(QtGui.QWidget):
@@ -105,6 +74,7 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		self.dens = self.densityLine.value()
 		self.length = self.lengthLine.value()
 		self.atime = self.interval.value()
+		# print self.capsconf
 		self.close()
 
 	def cancel(self):
