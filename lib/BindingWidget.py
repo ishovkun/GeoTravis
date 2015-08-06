@@ -30,6 +30,7 @@ class BindingWidget(QtGui.QWidget):
         config['moduli']['Young'] = {}
         config['moduli']['Young']['x'] = 'Ex'
         config['moduli']['Young']['y'] = 'SigD'
+        config['moduli']['Young']['units'] = 'psi'
         self.config = config
         self.time = self.gv.data['Time']
         self.interval = 100.
@@ -136,10 +137,13 @@ class BindingWidget(QtGui.QWidget):
         interval = self.gv.getSliderState()
         ind = (self.itimes>=interval[0]) & (self.itimes<=interval[1])
         active = self.tree.activeItems()
+        par = self.parameter()
         if self.plotVsXAction.isChecked():
-            x = self.gdata[self.parameter()][ind]
+            x = self.gdata[par][ind]
+            xName = par + ' ' + self.gv.units(par)
         elif self.plotVsYAction.isChecked():
-            y = self.gdata[self.parameter()][ind]
+            y = self.gdata[par][ind]
+            yName = xName = par + ' ' + self.gv.units(par)
         for group in active.keys():
             for key in active[group]:
                 color = self.tree.groups[group]['colors'][key].getColor()

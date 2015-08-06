@@ -47,17 +47,19 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		# nconf['moduli']['Young'] = {}
 		# nconf['moduli']['Young']['x'] = 'Ex'
 		# nconf['moduli']['Young']['y'] = 'SigD'
+		# nconf['moduli']['Young']['units'] = 'psi'
 		# nconf['moduli']['Poisson'] = {}
 		# nconf['moduli']['Poisson']['x'] = 'Ex'
 		# nconf['moduli']['Poisson']['y'] = 'Ey'
-		# SIMPLE CONFIG FOR END-CAPS
+		# nconf['moduli']['Poisson']['units'] = ''
+		# # SIMPLE CONFIG FOR END-CAPS
 		# config['end-caps'] = {}
 		# config['end-caps']['no end caps'] = {}
 		# nconf = config['end-caps']['no end caps']
 		# nconf['length'] = 0
 		# nconf['vP'] = 100
 		# nconf['vS'] = 100
-		# WRITE
+		# # WRITE
 		# config.write()
 		# READ CONFIG
 		tests = config['interpretation'].keys()
