@@ -12,7 +12,13 @@ from Colors import DynamicModuliColors,StaticModuliColors
 WaveTypes = ['P','Sx','Sy']
 psi = 6894.75729
 
+
 class BindingWidget(QtGui.QWidget):
+    '''
+    Widget computes geomechanic moduli as slopes
+    for variables pointed in configuration
+    and all moduli from sonic data
+    '''
     def __init__(self,parents=[None,None]):
         super(BindingWidget, self).__init__(None,
             )
@@ -116,6 +122,7 @@ class BindingWidget(QtGui.QWidget):
         for wave in WaveTypes:
             ### correct for end-caps
             corr = float(self.capsconf[wave])
+            # IF OSCILLOSCOPE TIME UNITS == mus
             times = (self.sv.aTimes[wave] - corr)*1e-6
             speed = self.sampLength/times
             interp = interp1d(self.gv.sTimes[wave],speed,bounds_error=False)
@@ -132,6 +139,8 @@ class BindingWidget(QtGui.QWidget):
         Ey = Gy*(3*lamby + 2*Gy)/(lamby + Gy)
         nux = lambx/2/(lambx + Gx)
         nuy = lamby/2/(lamby + Gy)
+        Kx = Ex/3./(1.-2*nux)
+        Ky = Ey/3./(1.-2*nuy)
         if self.config['units']['Young'] == 'psi':
             self.dmoduli['Young_x'] = Ex/psi
             self.dmoduli['Young_y'] = Ey/psi
@@ -144,6 +153,12 @@ class BindingWidget(QtGui.QWidget):
         if self.config['units']['Shear'] == 'Pa':
             self.dmoduli['Shear_x'] = Gx
             self.dmoduli['Shear_y'] = Gy
+        if self.config['units']['Bulk'] == 'psi':
+            self.dmoduli['Bulk_x'] = Kx/psi
+            self.dmoduli['Bulk_y'] = Ky/psi
+        if self.config['units']['Bulk'] == 'Pa':
+            self.dmoduli['Bulk_x'] = Kx
+            self.dmoduli['Bulk_y'] = Ky
         if self.config['units']['Poisson'] == '':
             self.dmoduli['Poisson_x'] = nux
             self.dmoduli['Poisson_y'] = nuy

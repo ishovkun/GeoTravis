@@ -24,6 +24,7 @@ from lib.MultiLine import MultiLine
 from lib.SonicViewer import SonicViewer
 from lib.functions import *
 from lib.ConfigureEndCapsWidget import ConfigureEndCapsWidget
+from lib.AboutWidget import AboutWidget
 WaveTypes = ['P','Sx','Sy']
 
 BadBindingMessage = '''
@@ -39,6 +40,7 @@ class GeoTravis(DataViewer):
         self.SViewer = SonicViewer(self)
         self.SViewer.setWindowIcon(QtGui.QIcon('images/Logo.png'))
         self.cecw = ConfigureEndCapsWidget()
+        self.aw = AboutWidget()
         # dict for sonic data
         self.sonicData = {'P':{},'Sx':{},'Sy':{}}
         self.trSonicNames = {'P':{},'Sx':{},'Sy':{}}
@@ -48,6 +50,7 @@ class GeoTravis(DataViewer):
         self.gsIndices = {}
         self.showSonicButton.triggered.connect(self.showSonicData)
         self.configureEndCapsButton.triggered.connect(self.cecw.show)
+        self.aboutButton.triggered.connect(self.aw.show)
 
     def setupGUI(self):
         print 'Setting up GUI'
