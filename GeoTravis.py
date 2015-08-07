@@ -239,7 +239,7 @@ class GeoTravis(DataViewer):
 
     def bindSonicTable(self):
         '''
-        
+
         '''
         if not self.SViewer.hasData(): return 0 # if no data pass
         print 'Binding sonic  with geomechanical data'
@@ -260,7 +260,19 @@ class GeoTravis(DataViewer):
 
         for wave in WaveTypes:
             sonicDataKeys = self.sonicData[wave].keys()
+            # find comments which coinside with sonic file names
             indices = compare_arrays(self.comments['Comments'],sonicDataKeys)
+            # find sonic file names which are not in comments and remove them
+            outliers = find_outliers(sonicDataKeys,self.comments['Comments'])
+            if outliers != []:
+                print 'found sonic files not prescribed in comments'
+                for i in outliers:
+                    outlier = sonicDataKeys[i]
+                    del self.sonicData[wave][outlier]
+                self.allSonicData[self.currentDataSetName] = {}
+                self.allSonicData[self.currentDataSetName][wave] = self.sonicData[wave]
+                self.SViewer.setData(self.sonicData)
+                self.SViewer.createTable()
             # times in comments dict which correspond to sonic waves
             self.sTimes[wave] = self.comments['Time'][indices]
             # get indices in geomechanics dataset which correspond to

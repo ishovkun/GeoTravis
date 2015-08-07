@@ -78,6 +78,14 @@ def compare_arrays(array1,array2):
     x = [i for i,item in enumerate(array1) if item in array2]
     return np.array(x)
 
+def find_outliers(array1,array2):
+    '''
+    returns indices of items in array1 whcich are not entries of 
+    array2
+    '''
+    x = [i for i,item in enumerate(array1) if item  not in array2]
+    return np.array(x)
+
 def atoi(text):
     return int(text) if text.isdigit() else text
 def natural_keys(text):
