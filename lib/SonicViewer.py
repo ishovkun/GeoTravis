@@ -392,6 +392,7 @@ class SonicViewer(QtGui.QWidget):
 			if self.updateQTable:
 				self.QTable.setColumn(y,k)
 				self.QTable.setColumn(x,k+3)
+			else: self.QTable.close() # otherwise it stalls
 			plt = self.plots[wave]
 			pen = pg.mkPen(color=(72,209,204), width=2)
 			plt.plot(x,y,pen=pen)
@@ -569,6 +570,10 @@ class SonicViewer(QtGui.QWidget):
 	def editArrivals(self):
 		data = self.QTable.getValues()
 		indices = self.parent.trsIndices
+		if self.yAxis == 'Track #':
+			for wave in WaveTypes:
+				indices[wave] = np.arange(len(self.parent.sTimes[wave]))
+			pass
 		self.aTimes['P'][indices['P']] = data[:,3]
 		self.aTimes['Sx'][indices['Sx']] = data[:,4]
 		self.aTimes['Sy'][indices['Sy']] = data[:,5]
