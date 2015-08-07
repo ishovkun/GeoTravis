@@ -238,6 +238,9 @@ class GeoTravis(DataViewer):
         self.SViewer.createTable()
 
     def bindSonicTable(self):
+        '''
+        
+        '''
         if not self.SViewer.hasData(): return 0 # if no data pass
         print 'Binding sonic  with geomechanical data'
         self.gsIndices = {}

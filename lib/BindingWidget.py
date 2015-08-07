@@ -125,6 +125,9 @@ class BindingWidget(QtGui.QWidget):
             # IF OSCILLOSCOPE TIME UNITS == mus
             times = (self.sv.aTimes[wave] - corr)*1e-6
             speed = self.sampLength/times
+            print self.sv.aTimes[wave].shape
+            print self.gv.sTimes[wave].shape
+            print 'hui'
             interp = interp1d(self.gv.sTimes[wave],speed,bounds_error=False)
             ispeeds[wave] = interp(self.itimes)
         Ctx = ispeeds['Sx'] 
