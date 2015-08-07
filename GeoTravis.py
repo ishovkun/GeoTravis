@@ -180,6 +180,7 @@ class GeoTravis(DataViewer):
             self.sonicData = {'P':{},'Sx':{},'Sy':{}}
             self.SViewer.currentShifts = {'P':0,'Sx':0,'Sy':0}
         self.SViewer.setData(self.sonicData)
+        self.SViewer.isWidget.lengthLine.setValue(self.sampleLength)
         self.enableSonicButton()
         self.disconnectSonicViewer()
         if self.SViewer.hasData(): 
