@@ -109,7 +109,7 @@ class InterpretationSettingsWidget(QtGui.QWidget):
 		### RIGHT COLUMN
 		self.rightLabel = QtGui.QLabel('Dynamic')
 		self.densityLine = LineWidget(type='value',label='Bulk density (g/cm3)')
-		self.lengthLine = LineWidget(type='value',label='Sample length (cm)')
+		self.lengthLine = LineWidget(type='value',label='Sample length (in)')
 		self.capsLine = LineWidget(type='list',label='End-caps config')
 		self.cancelButton = QtGui.QPushButton("Cancel")
 		self.rightLayout.addWidget(self.rightLabel)

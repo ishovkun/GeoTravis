@@ -18,7 +18,8 @@ from lib.SettingsWidget import SettingsWidget
 from lib.setupPlot import setup_plot
 from lib.functions import *
 from lib.CalculatorPlot import CalculatorPlot
-
+from lib.Colors import DataViewerTreeColors
+from lib.LabelStyles import *
 ModifyingParameters = [
     {'name':'Plot vs.','type':'list','values':['x','y']},
     {'name':'Parameter', 'type':'list'},
@@ -33,36 +34,7 @@ ModifyingParameters = [
         {'name':'Intersection', 'type':'float', 'value':0.0,'dec':True}
     ]},
 ]
-TickFontSize = 12 # size of tick labels
-TickOffset = 8 # offset from axes to prevent overlapping
-TickFont = QtGui.QFont("Times", TickFontSize, QtGui.QFont.Bold)
-# Font for axis labels
-LabelStyle = {'color': '#000000', 'font-size': '14pt','font':'Times'}
 
-Colors = [
-    (255,255,0),    # Eya
-    (255,255,0),    # Eyb
-    (0,0,255),      # Pu
-    (0,255,255),    # Pcu
-    (255,255,0),    # Pc
-    (100,100,100),  # Ya
-    (100,100,100),  # Yb
-    (255,0,0),      # Sig1
-    (100,100,100),  # Phyd
-    (100,100,100),  # Vhyd
-    (255,0,0),      # Sx
-    (255,0,0),      # SigD
-    (255,0,0),      # F
-    (0,255,0),      # Ss
-    (0,255,0),      # Su
-    (0,0,0),        # Time
-    (0,255,0),      # Sc
-    (255,0,0),      # Xa
-    (255,0,0),      # Thyd
-    (255,255,0),    # Ey
-    (0,255,0),      # Ex
-    (0,0,255),      # Ev
-]
 TrendPen = pg.mkPen(color=(72,209,204), width=3)
 
 class DataViewer(QtGui.QWidget):
@@ -93,10 +65,11 @@ class DataViewer(QtGui.QWidget):
         self.allData = {} # here we keep data for different datasets
         self.allCursors = {} # cursors for different dataset
         self.allIndices = {} # contains all truncated indices
+        self.allSampleLengths = {}
         self.settings.okButton.pressed.connect(self.settings.hide)
         self.exitButton.triggered.connect(sys.exit)
         self.settingsButton.triggered.connect(self.settings.show)
-        self.loadButton.triggered.connect(self.load)
+        self.loadButton.triggered.connect(self.requestLoad)
         self.addSceneButton.triggered.connect(self.addSceneToCombo)
         self.showComboDataButton.triggered.connect(self.comboList.show)
         self.calcPlotButton.triggered.connect(self.runCalcPlot)
@@ -123,21 +96,28 @@ class DataViewer(QtGui.QWidget):
         '''
         with open('lastdir','w') as f:
             f.write(os.path.dirname(filename))
-    def load(self):
+    def requestLoad(self):
         '''
-        opens file manager, reads data from file,
-        calls generateList to put into GUI
+        opens file manager, gets filename,
+        calls load
         '''
         self.lastdir = self.checkForLastDir()
         # second par - name of file dialog window
         # third parameter - default file name
         # forth parameter - file filter. types separated by ';;'
-        filename = QtGui.QFileDialog.getOpenFileName(self, "", "%s"%(self.lastdir), "*.clf;;MAT files (*.mat)")
+        filename = QtGui.QFileDialog.getOpenFileName(self, "",
+         "%s"%(self.lastdir), "*.clf;;MAT files (*.mat)")
+        self.load(filename)
+    def load(self,filename):
+        '''
+        opens file manager, reads data from file,
+        calls generateList to put into GUI
+        '''
         if filename[0] == '': return
         if filename[1] == 'MAT files (*.mat)':
             self.data = pymat.load(filename[0])
         elif filename[1] == u'*.clf':
-            data,comments = readclf.readclf(filename[0])
+            data,comments,length = readclf.readclf(filename[0])
             # self.comments = comments
         else: raise IOError('Cannot read this file format.')
         # this is to remember this name when we wanna save file
@@ -146,7 +126,7 @@ class DataViewer(QtGui.QWidget):
         # remove extension from name
         self.filename = os.path.splitext(self.filename)[0]
         # Separate all digital data and units    
-        self.units = data['Units']
+        self.units = data['Units']        
         del data['Units']
         self.data = data
         try:
@@ -159,6 +139,7 @@ class DataViewer(QtGui.QWidget):
         # get one name from array to get length of the data
         key = data.keys()[0]
         l = self.data[key].shape[0]
+        self.allSampleLengths[self.filename] = length
         self.allIndices[self.filename] = np.arange(l)
         self.allComments[self.filename] = comments
         self.addDataSet(self.filename)
@@ -185,6 +166,7 @@ class DataViewer(QtGui.QWidget):
         # set current data dictionaries to new values
         self.currentDataSetName = name
         self.data = self.allData[name]
+        self.sampleLength = self.allSampleLengths[name]
         self.indices = self.allIndices[name]
         self.dataSetMenu.setDefaultAction(self.dataSetButtons[name])
         self.cursors = self.allCursors[name]
@@ -426,9 +408,9 @@ class DataViewer(QtGui.QWidget):
             self.plt.plot(xdata, ydata, 
                 pen=linestyle, name=plotlist[i])
             self.plt.setLabel('left', plotlist[i],units=yunits,
-                **LabelStyle)
+                **AxisLabelStyle)
         xunits = self.units[xlabel]
-        self.plt.setLabel('bottom', xlabel,units=xunits,**LabelStyle)
+        self.plt.setLabel('bottom', xlabel,units=xunits,**AxisLabelStyle)
         # if len(plotlist)>0: self.bindCursors(data[xlabel],data[ylabel])
     def plotVersusY(self):
         '''
@@ -450,8 +432,8 @@ class DataViewer(QtGui.QWidget):
             if null: xdata -= xdata[0]
             self.plt.plot(xdata, ydata, 
                 pen=linestyle, name=plotlist[i])
-            self.plt.setLabel('bottom', xlabel,units=xunits,**LabelStyle)
-        self.plt.setLabel('left', ylabel,units=yunits,**LabelStyle)
+            self.plt.setLabel('bottom', xlabel,units=xunits,**AxisLabelStyle)
+        self.plt.setLabel('left', ylabel,units=yunits,**AxisLabelStyle)
 
     def plotTrend(self):
         '''
@@ -531,7 +513,7 @@ class DataViewer(QtGui.QWidget):
         # self.params = Parameter.create(name='Data', type='group',children=self.paramlist)
         self.modparams = Parameter.create(name='Options', type='group',children=self.modparamlist)
         self.tree.clear()
-        self.tree.addItems(self.data.keys(),Colors)
+        self.tree.addItems(self.data.keys(),DataViewerTreeColors)
         # self.tree.setParameters(self.params, showTop=True)
         self.modtree.setParameters(self.modparams, showTop=True)
         self.assignAttributes() # to get shorter names
@@ -623,8 +605,8 @@ class DataViewer(QtGui.QWidget):
         self.splitter.setStretchFactor(1, 1)
         self.plt = self.sublayout.addPlot()
         setup_plot(self.plt)
-        self.plt.setLabel('bottom', 'X Axis',**LabelStyle)
-        self.plt.setLabel('left', 'Y Axis',**LabelStyle)
+        self.plt.setLabel('bottom', 'X Axis',**AxisLabelStyle)
+        self.plt.setLabel('left', 'Y Axis',**AxisLabelStyle)
         self.plt.enableAutoRange(enable=True)
         self.autoScaleButton.triggered.connect(self.plt.enableAutoRange)
         self.slider = self.createSlider()

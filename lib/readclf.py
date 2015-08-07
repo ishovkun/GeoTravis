@@ -105,6 +105,23 @@ def createUnitsDict(names,units):
 		unitsDict[names[i]] = units[i]
 	return unitsDict
 
+def findParameters(text):
+	'''
+	find sample length
+	'''
+	expr = 'Test Parameters 3.Cluster.Value=.*\n'
+	match = re.search(expr,text)
+	if match == None:
+		print 'Sample length not found!!!!'
+		return 0
+	else:
+		line = text[match.start():match.end()]
+		expr = '[0-9]+.?[0-9]*\n'
+		match = re.search(expr,line)
+		length = float(line[match.start():match.end()])
+		return length
+
+
 def readclf(filename):
 	'''
 	Main function.
@@ -112,6 +129,9 @@ def readclf(filename):
 	'''
 	with open(filename,'r') as f:
 		text = f.read()
+	# find sample length
+	length = findParameters(text)
+	###
 	headerpos = findHeader(text)
 	header = text[headerpos[0]:headerpos[1]]
 	names,units = getNames(header)
@@ -124,11 +144,12 @@ def readclf(filename):
 	data = remove_zeros(data)
 	unitsDict = createUnitsDict(names,units)
 	data['Units'] = unitsDict
-	return data,comments
+	return data,comments,length
 	
 # # Usage
-# filename = "_1_Berea SS #5_Multi-stage 3-axial load_2015-02-16_001.clf"
-# filename = "_Training_Berea SS _Berea SS Mechanical Properties 1500psi REDO_2015-03-31-001.clf"
-# data,comments = readclf(filename)
-# data = readclf(filename)
-# print comments
+if __name__ == '__main__':
+	filename = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf"
+	# filename = "_Training_Berea SS _Berea SS Mechanical Properties 1500psi REDO_2015-03-31-001.clf"
+	readclf(filename)
+	# data,comments = readclf(filename)
+	# print comments

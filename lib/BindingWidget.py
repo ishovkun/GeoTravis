@@ -11,7 +11,8 @@ from Colors import DynamicModuliColors,StaticModuliColors
 
 WaveTypes = ['P','Sx','Sy']
 psi = 6894.75729
-
+cm = 1e-2
+inch = 2.54*cm
 
 class BindingWidget(QtGui.QWidget):
     '''
@@ -39,7 +40,7 @@ class BindingWidget(QtGui.QWidget):
         self.config = testconf
         self.capsconf = capsconf
         self.interval = atime
-        self.sampLength = length/100.
+        self.sampLength = length*inch
         self.density = dens*1000.
         self.time = self.gv.data[time]
     def run(self):
