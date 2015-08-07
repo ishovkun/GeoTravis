@@ -43,6 +43,8 @@ class BindingWidget(QtGui.QWidget):
         self.density = dens*1000.
         self.time = self.gv.data[time]
     def run(self):
+        self.dmoduli = {}
+        self.smoduli = {}
         self.show()
         self.getSonicTimes()
         self.interpolateGData()
@@ -211,6 +213,7 @@ class BindingWidget(QtGui.QWidget):
 
     def setupTree(self):
         # for mod in self.dmoduli:
+        print 'setting up binding widget tree'
         self.tree.clear()
         self.tree.addItems(self.dmoduli.keys(),group='Dynamic',colors=DynamicModuliColors)
         self.tree.addItems(self.smoduli.keys(),group='Static',colors=StaticModuliColors)
@@ -285,6 +288,8 @@ class BindingWidget(QtGui.QWidget):
 if __name__ == '__main__':
     App = QtGui.QApplication(sys.argv)
     win = BindingWidget()
+    win.setupTree()
+    win.setupTree()
     # win.showMaximized()
     # win.showFullScreen()
     win.show()
