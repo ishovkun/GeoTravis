@@ -5,9 +5,9 @@ from PySide import QtCore, QtGui
 import numpy as np
 import re
 
-class EffectiveStressSettings(QtGui.QWidget):
+class EffectiveStressSettingsWidget(QtGui.QWidget):
 	def __init__(self):
-		super(EffectiveStressSettings,self).__init__()
+		super(EffectiveStressSettingsWidget,self).__init__()
 		self.setupGUI()
 		self.formula = None
 		# self.okButton.clicked.connect(self.saveParameters)
@@ -34,7 +34,7 @@ class EffectiveStressSettings(QtGui.QWidget):
 		bgBrush = pg.mkBrush(255,0,0)
 		tree.setFrameShape(QtGui.QFrame.NoFrame)
 		palette = QtGui.QPalette(g, g, g, g, g, b, b, g, g)
-		tree.setPalette(palette)
+		# tree.setPalette(palette)
 
 		axStressItem = pg.TreeWidgetItem(['Axial stress'])
 		# axStressItem.setTextAlignment(0,0)
@@ -68,12 +68,6 @@ class EffectiveStressSettings(QtGui.QWidget):
 		tree.setColumnWidth(1,170)
 		tree.setColumnWidth(2,10)
 
-		# # set default parameters
-		# p1 = Parameters['Axial stress']
-		# p2 = Parameters['Confining pressure']
-		# p3 = Parameters['Pore pressure']
-		# p4 = Parameters['Biot coefficient']
-		# self.setParameters([p1,p2,p3,p4])
 	def setAvailableVariables(self,varlist):
 		text = 'Avaliable variables: '
 		i = 0
@@ -102,33 +96,37 @@ class EffectiveStressSettings(QtGui.QWidget):
 		self.axStressBox.setText(parlist[0])
 		self.confStressBox.setText(parlist[1])
 		self.porePressBox.setText(parlist[2])
-		self.biotBox.setValue(parlist[3])
+		self.biotBox.setValue(float(parlist[3]))
 
-	def saveParameters(self):
-		par = self.parameters()
-		text = 'Parameters = {\n' +\
-		'\'Axial stress\':\'%s\',\n'%(par[0]) +\
-		'\'Confining pressure\':\'%s\',\n'%(par[1]) +\
-		'\'Pore pressure\':\'%s\',\n'%(par[2]) +\
-		'\'Biot coefficient\':%f,\n}'%(par[3])
-		with open('EffectiveStressParameters.py','w') as f:
-			f.write(text)
-		self.hide()
 	def cancel(self):
 		p1 = Parameters['Axial stress']
 		p2 = Parameters['Confining pressure']
 		p3 = Parameters['Pore pressure']
 		p4 = Parameters['Biot coefficient']
 		self.setParameters([p1,p2,p3,p4])
-		self.hide()
+		self.close()
+	def setConfig(self,config):
+		p1 = config['Axial_stress']
+		p2 = config['Confining_stress']
+		p3 = config['Pore_pressure']
+		p4 = config['Biot']
+		self.conf = config
+		self.setParameters([p1,p2,p3,p4])
+	def config(self):
+		p = self.parameters()
+		self.conf['Axial_stress'] = p[0]
+		self.conf['Confining_stress'] = p[1]
+		self.conf['Pore_pressure'] = p[2]
+		self.conf['Biot'] = p[3]
+		return self.conf
 
 
 
 if __name__ == '__main__':
 	App = QtGui.QApplication(sys.argv)
-	w = EffectiveStressSettings()
+	w = EffectiveStressSettingsWidget()
 	varlist = ['sig1','sigD','Pc','Pu','1'*20,'2'*20]
 	w.setAvailableVariables(varlist)
-	w.setParameters(['sig1','Pc','Pu',0.1])
+	w.setParameters(['sig1','Pc','Pu',0.8])
 	w.show()
 	App.exec_()

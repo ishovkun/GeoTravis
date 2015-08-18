@@ -1,15 +1,17 @@
-from EffectiveStressSettings import EffectiveStressSettings
 import sys
 import pyqtgraph as pg
 from PySide import QtCore, QtGui
 # import numpy as np
-from ConfigParser import SafeConfigParser
+# from ConfigParser import SafeConfigParser
 from configobj import ConfigObj
+from EffectiveStressSettingsWidget import EffectiveStressSettingsWidget
+from MainSettingsWidget import MainSettingsWidget
 
 class SettingsWidget(QtGui.QMainWindow):
 	"""docstring for SettingsWidget"""
 	def __init__(self):
 		super(SettingsWidget, self).__init__()
+		self.conf = {}
 		self.setupGUI()
 		self.loadConfig()
 		self.okButton.clicked.connect(self.saveConfig)
@@ -18,11 +20,9 @@ class SettingsWidget(QtGui.QMainWindow):
 		# config = SafeConfigParser()
 		# config.read('config.ini')
 		config = ConfigObj('config.ini')
-		p1 = config['effective_stress']['Axial_stress']
-		p2 = config['effective_stress']['Confining_stress']
-		p3 = config['effective_stress']['Pore_pressure']
-		p4 = config['effective_stress']['Biot']
-		self.mcWidget.setParameters([p1,p2,p3,p4])
+		self.mcWidget.setConfig(config['effective_stress'])
+		self.msWidget.setConfig(config['Main parameters'])
+		self.conf = config
 	def setupGUI(self):
 		self.setWindowTitle('Settings')
 		self.setGeometry(500, 300, 400, 300)
@@ -32,7 +32,9 @@ class SettingsWidget(QtGui.QMainWindow):
 		centralWidget.setLayout(self.centralLayout)
 
 		self.tabWidget = QtGui.QTabWidget()
-		self.mcWidget = EffectiveStressSettings()
+		self.mcWidget = EffectiveStressSettingsWidget()
+		self.msWidget = MainSettingsWidget()
+		self.tabWidget.addTab(self.msWidget,u'Main Settings')
 		self.tabWidget.addTab(self.mcWidget,u'Effective stress')
 		# set up button layout
 		self.buttonsWidget = QtGui.QWidget()
@@ -49,20 +51,21 @@ class SettingsWidget(QtGui.QMainWindow):
 		self.centralLayout.addWidget(self.buttonsWidget)
 	def saveConfig(self):
 		print 'Saving Settings'
-		p = self.mcWidget.parameters()
 		config = ConfigObj('config.ini')
-		config['effective_stress'] = {}
-		config['effective_stress']['Axial_stress'] = p[0]
-		config['effective_stress']['Confining_stress'] = p[1]
-		config['effective_stress']['Pore_pressure'] = p[2]
-		config['effective_stress']['Biot'] = p[3]
+		config['effective_stress'] = self.mcWidget.config()
+		config['Main parameters'] = self.msWidget.config()
 		config.write()
 
-		    
+	def config(self):
+		config = self.conf
+		config['effective_stress'] = self.mcWidget.config()
+		config['Main parameters'] = self.msWidget.config()
+		return config
+
 	def cancel(self):
 		print 'cancel settings change'
 		self.loadConfig()
-		self.hide()
+		self.close()
 
 if __name__ == '__main__':
 	App = QtGui.QApplication(sys.argv)

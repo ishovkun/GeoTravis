@@ -3,6 +3,7 @@ import sys,os
 import pyqtgraph as pg
 import pickle
 from PySide import QtGui, QtCore
+from copy import copy
 from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
@@ -51,6 +52,8 @@ class SonicViewer(QtGui.QWidget):
 	autoShift = {'P':True,'Sx':True,'Sy':True} # flag to match 0 and transmission time
 	arrivalsPicked = False
 	updateQTable = True # don't need 
+	skipPlottingFAmpFlag = False
+	skipPlottingFPhaseFlag = False
 	def __init__(self,parent=None):
 		self.parent = parent
 		QtGui.QWidget.__init__(self,None,QtCore.Qt.WindowStaysOnTopHint)
@@ -88,12 +91,17 @@ class SonicViewer(QtGui.QWidget):
 		self.contourButton.triggered.connect(lambda: self.setMode('Contours'))
 		self.moduliButton.triggered.connect(self.isWidget.show)
 		self.isWidget.okButton.pressed.connect(self.runBindingWidget)
+		self.filteringButton.triggered.connect(self.parent.plotSonicData)
+		self.fWidget.sigRegionChanged.connect(self.plotFilteredData)
 		# self.moduliButton.triggered.connect(self.bWidget.run)
 		for wave in WaveTypes:
 			self.params[wave].param('Arrival times').param('Mpoint').sigValueChanged.connect(self.recomputeArrivals)
 			self.params[wave].param('Arrival times').param('BTA').sigValueChanged.connect(self.recomputeArrivals)
 			self.params[wave].param('Arrival times').param('ATA').sigValueChanged.connect(self.recomputeArrivals)
 			self.params[wave].param('Arrival times').param('DTA').sigValueChanged.connect(self.recomputeArrivals)
+	def plotFilteredData(self):
+		self.skipPlottingFAmpFlag = True
+		self.parent.plotSonicData()
 	def runBindingWidget(self):
 		testconf = self.isWidget.testconf
 		capsconf = self.isWidget.capsconf
@@ -145,21 +153,28 @@ class SonicViewer(QtGui.QWidget):
 		if not self.hasData(): return 0 # if no data pass
 		print 'Building Fourrier matrix'
 		self.fft = {} # power
-		self.ph = {} # phase
+		self.fftamp = {} # power
+		self.fftph = {} # phase
 		for wave in WaveTypes:
 			x = self.table[wave][0,:,:]
 			y = self.table[wave][1,:,:]
 			N = y.shape[1]
 			h = x[0,1] - x[0,0]
 			# yf = np.fft.fft(y).real[:,:N/2]
+			ft = np.fft.fft(y)
+			fft = ft[:,:N/2]
 			fft = np.fft.fft(y)[:,:N/2]
 			yf = np.absolute(fft)
 			yp = np.arctan2(fft.imag,fft.real)
-			xf = np.fft.fftfreq(N,h)[:N/2]
+			xf0 = np.fft.fftfreq(N,h)
+			xf = xf0[:N/2]
 			xf = np.tile(xf,y.shape[0])
+			xf0 = np.tile(xf0,y.shape[0])
 			xf = xf.reshape(yf.shape[0],yf.shape[1])
-			self.fft[wave] = np.array((xf,yf))
-			self.ph[wave] = np.array((xf,yp))
+			xf0 = xf0.reshape(ft.shape[0],ft.shape[1])
+			self.fft[wave] = np.array((xf0,ft))
+			self.fftamp[wave] = np.array((xf,yf))
+			self.fftph[wave] = np.array((xf,yp))
 
 
 	def connectPlotButtons(self):
@@ -207,6 +222,19 @@ class SonicViewer(QtGui.QWidget):
 		self.moduliButton.setDisabled(False)
 		self.showArrivalsButton.trigger()
 
+	def getInverseFFT(self):
+		ifft = {}
+		interval = self.fWidget.interval()
+		for wave in WaveTypes:
+			x = self.table[wave][0,:,:]
+			xf = self.fft[wave][0,:,:]
+			yf = copy(self.fft[wave][1,:,:])
+			yf[abs(xf)<min(interval)] = 0
+			yf[abs(xf)>max(interval)] = 0
+			ift = np.fft.ifft(yf)
+			ifft[wave] = np.array((x,ift.real))
+		return ifft
+
 	def plot(self,indices=None,yarray=None,yindices=None,
 		amplify=None,yAxisName='Track #'):
 		'''
@@ -219,52 +247,78 @@ class SonicViewer(QtGui.QWidget):
 			plot = self.plots[wave]
 			fplot = self.fWidget.plots[wave]
 			phplot = self.phWidget.plots[wave]
-			plot.clear(); fplot.clear(); phplot.clear();
+			plot.clear();
+			if self.skipPlottingFAmpFlag: pass
+			else: 
+				fplot.clear()
+				fplot.getAxis('left').setLabel(yAxisName,**LabelStyle)
+				fplot.getAxis('bottom').setLabel(fXAxisName,**LabelStyle)
+				fplot.enableAutoRange(enable=True)
+			if self.skipPlottingFPhaseFlag: pass
+			else: 
+				phplot.clear()
+				phplot.getAxis('left').setLabel(yAxisName,**LabelStyle)
+				phplot.getAxis('bottom').setLabel(fXAxisName,**LabelStyle)
+				phplot.enableAutoRange(enable=True)
+
 			plot.getAxis('left').setLabel(yAxisName,**LabelStyle)
 			plot.getAxis('bottom').setLabel(xAxisName,**LabelStyle)
-			fplot.getAxis('left').setLabel(yAxisName,**LabelStyle)
-			fplot.getAxis('bottom').setLabel(fXAxisName,**LabelStyle)
-			phplot.getAxis('left').setLabel(yAxisName,**LabelStyle)
-			phplot.getAxis('bottom').setLabel(fXAxisName,**LabelStyle)
 			plot.enableAutoRange(enable=True)
-			fplot.enableAutoRange(enable=True)
-			phplot.enableAutoRange(enable=True)
 
-		# print 2
-		if self.mode == 'WaveForms':
-			self.plotWaveForms(indices,amplify,yAxisName)
-		elif self.mode == 'Contours':
-			self.plotContours(indices,yarray,yindices,
-			amplify,yAxisName)
-
-		# print 3
-		if self.fWidget.isVisible():
+		# Plot data in main sonic viewer
+		if self.filteringButton.isChecked():
+			self.fWidget.show()
+			# self.fWidget.activateWindow()
+			ifft = self.getInverseFFT()
 			if self.mode == 'WaveForms':
-				self.plotDataWaveForms(self.fft,self.fWidget,
+				self.plotDataWaveForms(ifft,self,
 					indices,amplify,yAxisName)
 			elif self.mode == 'Contours':
-				self.plotDataContours(self.fft,
-					self.fWidget, self.fgw,
+				self.plotDataContours(ifft,
+					self, self.fgw,
 					indices,yarray,yindices,
 					amplify,yAxisName)
-		# print 4
-		if self.phWidget.isVisible():
+		else:
 			if self.mode == 'WaveForms':
-				self.plotDataWaveForms(self.ph,self.pWidget,
-					indices,amplify,yAxisName)
+				self.plotWaveForms(indices,amplify,yAxisName)
 			elif self.mode == 'Contours':
-				self.plotDataContours(self.ph,
-					self.phWidget, self.pgw,
-					indices,yarray,yindices,
-					amplify,yAxisName)
-		# print 5
+				self.plotContours(indices,yarray,yindices,
+				amplify,yAxisName)
 
+		# Plot fourrier transform amplitude data
+		if not self.skipPlottingFAmpFlag:
+			if self.fWidget.isVisible():
+				if self.filteringButton.isChecked():
+					self.fWidget.addRegions()
+				if self.mode == 'WaveForms':
+					self.plotDataWaveForms(self.fftamp,self.fWidget,
+						indices,amplify,yAxisName)
+				elif self.mode == 'Contours':
+					self.plotDataContours(self.fftamp,
+						self.fWidget, self.fgw,
+						indices,yarray,yindices,
+						amplify,yAxisName)
 
+		# Plot fourrier transform phase data
+		if not self.skipPlottingFPhaseFlag:
+			if self.phWidget.isVisible():
+				if self.mode == 'WaveForms':
+					self.plotDataWaveForms(self.fftph,self.pWidget,
+						indices,amplify,yAxisName)
+				elif self.mode == 'Contours':
+					self.plotDataContours(self.fftph,
+						self.phWidget, self.gw,
+						indices,yarray,yindices,
+						amplify,yAxisName)
+
+		# Plot arrival times
 		if self.showArrivalsButton.isChecked():
 			self.plotArrivals(indices,yarray,yindices,
 			amplify,yAxisName)
 
 		# print 6
+		self.skipPlottingFAmpFlag = False
+		self.skipPlottingFPhaseFlag = False
 		
 	def plotWaveForms(self,indices=None, amplify=None,yAxisName=''):
 		self.graphicPaths = {}
@@ -483,8 +537,10 @@ class SonicViewer(QtGui.QWidget):
 		# TRANSFORM MENU
 		self.showForrierMagnitudeButton = QtGui.QAction('Fourrier magnitude',self)
 		self.showForrierPhasesButton = QtGui.QAction('Fourrier phases',self)
+		self.filteringButton = QtGui.QAction('Frequency filtering',self,checkable=True)
 		self.transformMenu.addAction(self.showForrierMagnitudeButton)
 		self.transformMenu.addAction(self.showForrierPhasesButton)
+		self.transformMenu.addAction(self.filteringButton)
 		# dict to store actions for y Axis
 		self.yAxisButtons = {}
 		self.yAxisGroup = QtGui.QActionGroup(self)
