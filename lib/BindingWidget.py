@@ -30,7 +30,7 @@ class BindingWidget(QtGui.QWidget):
         self.gv = parents[0] # Geomechanics viewer
         self.sv = parents[1] # Sonic viewer
         try:
-            self.gv.slider.sigGradientChanged.connect(self.plot)
+            self.gv.slider.sigRangeChanged.connect(self.plot)
         except: pass
         self.autoScaleAction.triggered.connect(self.plot)
         self.plotVsXAction.triggered.connect(self.plot)
@@ -170,8 +170,8 @@ class BindingWidget(QtGui.QWidget):
         if not self.isVisible(): return 0
         self.plt.clear()
         self.plt.showGrid(x=True, y=True)
-        interval_parameter = self.gv.modparams.param('Interval').value()
-        interval = self.gv.getSliderState()
+        interval_parameter = self.gv.sliderParam
+        interval = self.gv.slider.interval()
         ind = (self.itimes>=interval[0]) & (self.itimes<=interval[1])
         active = self.tree.activeItems()
         par = self.parameter()

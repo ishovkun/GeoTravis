@@ -63,7 +63,7 @@ class GeoTravis(DataViewer):
         self.fileMenu.addAction(self.loadSonicButton)
         self.fileMenu.addAction(self.saveButton)
         self.fileMenu.addAction(self.exitButton)
-        self.configureEndCapsButton = QtGui.QAction('Confige end-caps',self)
+        self.configureEndCapsButton = QtGui.QAction('Config end-caps',self)
         # we connect sonic button now since but don't show it yet
         self.showSonicButton = QtGui.QAction('Sonic',self,shortcut='Alt+S')
         self.showSonicButton.setDisabled(True)
@@ -159,7 +159,8 @@ class GeoTravis(DataViewer):
         wave tracks 
         '''
         super(GeoTravis, self).connectParameters()
-        self.slider.sigGradientChanged.connect(self.truncateSonicData)
+        self.slider.sigRangeChanged.connect(self.truncateSonicData)
+        # self.slider.sigGradientChanged.connect(self.truncateSonicData)
 
     def setCurrentDataSet(self,name):
         '''
@@ -214,7 +215,7 @@ class GeoTravis(DataViewer):
         '''
         if self.SViewer.hasData():
             self.gsIndices = {}
-            interval = self.getSliderState()
+            interval = self.slider.interval()
             for wave in WaveTypes:
                 # Indices of geom data corresponding to sonic output
                 #

@@ -20,10 +20,12 @@ from lib.functions import *
 from lib.CalculatorPlot import CalculatorPlot
 from lib.Colors import DataViewerTreeColors
 from lib.LabelStyles import *
+from lib.Slider import SliderWidget
+
 ModifyingParameters = [
     {'name':'Plot vs.','type':'list','values':['x','y']},
     {'name':'Parameter', 'type':'list'},
-    {'name':'Interval', 'type':'list'},
+    # {'name':'Interval', 'type':'list'},
     {'name':'min', 'type':'float', 'value':0.0,'dec':True,'step':1.0},
     {'name':'max', 'type':'float', 'value':1.0,'dec':True,'step':1.0},
     {'name':'Null', 'type':'bool', 'value':False,'tip': "Press to null data"},
@@ -46,6 +48,8 @@ class DataViewer(QtGui.QWidget):
         self.setupGUI()
         # default plots will be drawn with multiple y and single x
         self.mainAxis = 'x'
+        self.sliderParam = self.settings.config()['Main parameters']['slider']
+        self.timeParam = self.settings.config()['Main parameters']['time']
         # no legend at first (there is no data)
         self.legend = None
         self.currentDataSetName = None
@@ -66,6 +70,7 @@ class DataViewer(QtGui.QWidget):
         self.allCursors = {} # cursors for different dataset
         self.allIndices = {} # contains all truncated indices
         self.allSampleLengths = {}
+        self.allUnits = {}
         self.settings.okButton.pressed.connect(self.settings.hide)
         self.exitButton.triggered.connect(sys.exit)
         self.settingsButton.triggered.connect(self.settings.show)
@@ -126,14 +131,11 @@ class DataViewer(QtGui.QWidget):
         # remove extension from name
         self.filename = os.path.splitext(self.filename)[0]
         # Separate all digital data and units    
-        self.units = data['Units']        
+        units = data['Units']        
         del data['Units']
         self.data = data
-        try:
-            self.datalength = len(self.data[self.data.keys()[1]])
-        except: self.datalength = 1
-        self.setParameters()
-        self.connectParameters()
+        # self.setParameters()
+        # self.connectParameters()
         # self.cursors = []
         self.allData[self.filename] = data
         # get one name from array to get length of the data
@@ -142,6 +144,7 @@ class DataViewer(QtGui.QWidget):
         self.allSampleLengths[self.filename] = length
         self.allIndices[self.filename] = np.arange(l)
         self.allComments[self.filename] = comments
+        self.allUnits[self.filename] = units
         self.addDataSet(self.filename)
     def addDataSet(self,name):
         print 'Modifying GUI: adding data set button'
@@ -166,11 +169,14 @@ class DataViewer(QtGui.QWidget):
         # set current data dictionaries to new values
         self.currentDataSetName = name
         self.data = self.allData[name]
+        self.units = self.allUnits[name]
         self.sampleLength = self.allSampleLengths[name]
         self.indices = self.allIndices[name]
         self.dataSetMenu.setDefaultAction(self.dataSetButtons[name])
         self.cursors = self.allCursors[name]
         self.comments = self.allComments[name]
+        self.setParameters()
+        self.connectParameters()
         # self.mcSettings.setAvailableVariables(self.data.keys())
         self.settings.mcWidget.setAvailableVariables(self.data.keys())
     	self.calcPlotButton.setDisabled(False)
@@ -195,13 +201,13 @@ class DataViewer(QtGui.QWidget):
         Default Interval variable is set to Time
         '''
         # set default values for modifying parameters
-        self.modparams.param('Parameter').setValue('Time')
-        self.modparams.param('Interval').setValue('Time')
+        self.modparams.param('Parameter').setValue(self.timeParam)
+        # self.modparams.param('Interval').setValue('Time')
         # connect signals to updating functions
         self.tree.sigStateChanged.connect(self.bindCursors)
         self.tree.sigStateChanged.connect(self.updatePlot)
-        self.slider.sigGradientChanged.connect(self.truncate)
-        self.modparams.param('Interval').sigValueChanged.connect(self.updatePlot)
+        self.slider.sigRangeChanged.connect(self.truncate)
+        # self.modparams.param('Interval').sigValueChanged.connect(self.updatePlot)
         self.modparams.param('min').sigValueChanged.connect(self.setTicks)
         self.modparams.param('max').sigValueChanged.connect(self.setTicks)
         self.modparams.param('Parameter').sigValueChanged.connect(self.updatePlot)
@@ -332,17 +338,18 @@ class DataViewer(QtGui.QWidget):
         self.checkTrendUpdates()
 
     def truncate(self):
-        interval_parameter = self.modparams.param('Interval').value()
-        interval = self.getSliderState()
-        arr = self.data[interval_parameter]
+        interval = self.slider.interval()
+        arr = self.data[self.sliderParam]
         self.indices = (arr>=interval[0]) & (arr <= interval[1])
         self.checkTrendUpdates() 
         self.updatePlot()
+
     def setMainAxis(self):
         self.mainAxis = self.modparams.param('Plot vs.').value()
         self.updatePlot()
+
     def updateLimits(self):
-        interval = self.getSliderState()
+        interval = self.slider.interval()
         self.modparams.param('min').sigValueChanged.disconnect(self.setTicks)
         self.modparams.param('max').sigValueChanged.disconnect(self.setTicks)
         self.modparams.param('min').setValue(interval[0])
@@ -354,17 +361,11 @@ class DataViewer(QtGui.QWidget):
         sets ticks to state coressponding to  Interval min/max
         values, when they are manually changed
         '''
-        interval_parameter = self.modparams.param('Interval').value()
-        scale = self.data[interval_parameter].max()
+        scale = self.data[self.sliderParam].max()
         values = [float(self.modparams.param('min').value())/scale,
                   float(self.modparams.param('max').value())/scale
                  ]
-        i = 0
-        self.slider.sigGradientChanged.disconnect(self.updatePlot)
-        for tick in self.slider.ticks:
-            self.slider.setTickValue(tick, values[i])
-            i += 1
-        self.slider.sigGradientChanged.connect(self.updatePlot)
+        self.slider.setInterval(values)
         self.updatePlot()
 
     def updatePlot(self):
@@ -468,29 +469,18 @@ class DataViewer(QtGui.QWidget):
         # creadte new legend
         self.plt.addLegend([90,20],offset=position)
         self.legend = self.plt.legend
-        # print self.legend.pos()
     def setAxisScale(self):
         '''
         sets scale to the interval axis. if time, sets minimum value to 0,
         because it could have been cleared
         '''
-        interval_parameter = self.modparams.param('Interval').value()
-        if interval_parameter == 'Time':
-            self.timeAxis.setRange(0,max(self.data['Time']))
+        # interval_parameter = self.modparams.param('Interval').value()
+        interval_parameter = self.sliderParam
+        if interval_parameter == self.timeParam:
+            self.slider.setRange(0,max(self.data[self.timeParam]))
         else:
-            self.timeAxis.setRange(min(self.data[interval_parameter]),max(self.data[interval_parameter]))
+            self.slider.setRange(min(self.data[interval_parameter]),max(self.data[interval_parameter]))
 
-    def getSliderState(self):
-        '''
-        returns numpt array 1x2 of slider ticks positions
-        note: max position = 1, min = 0
-        '''
-        interval = []
-        for i in self.slider.ticks:
-            interval.append(self.slider.tickValue(i))
-        interval_parameter = self.modparams.param('Interval').value()
-        scale = self.data[interval_parameter].max()
-        return np.array(sorted(interval))*scale
     def activeEntries(self):
         '''
         returns a list of active entries in the data bar
@@ -507,8 +497,8 @@ class DataViewer(QtGui.QWidget):
         # set modifying parameters
         self.modparamlist = ModifyingParameters
         self.modparamlist[1]['values'] = self.data.keys() # Parameter
-        self.modparamlist[2]['values'] = self.data.keys() # Interval
-        self.modparamlist[6]['children'][1]['values'] = self.data.keys() # Trend parameter
+        # self.modparamlist[2]['values'] = self.data.keys() # Interval
+        self.modparamlist[5]['children'][1]['values'] = self.data.keys() # Trend parameter
         # create parameter class instances()
         # self.params = Parameter.create(name='Data', type='group',children=self.paramlist)
         self.modparams = Parameter.create(name='Options', type='group',children=self.modparamlist)
@@ -609,14 +599,11 @@ class DataViewer(QtGui.QWidget):
         self.plt.setLabel('left', 'Y Axis',**AxisLabelStyle)
         self.plt.enableAutoRange(enable=True)
         self.autoScaleButton.triggered.connect(self.plt.enableAutoRange)
-        self.slider = self.createSlider()
-        self.timeAxis = pg.AxisItem('bottom')
-        self.timeAxis.setStyle(tickTextOffset=TickOffset)
-        self.timeAxis.tickFont = TickFont
+        # self.slider = self.createSlider()
+        self.slider = SliderWidget()
         self.sublayout.nextRow()
         self.sublayout.addItem(self.slider)
         self.sublayout.nextRow()
-        self.sublayout.addItem(self.timeAxis)
         self.statusBar = QtGui.QStatusBar()
         self.treesplitter.addWidget(self.statusBar)
         self.setGeometry(80, 50, 800, 600)
