@@ -79,6 +79,14 @@ class DataViewer(QtGui.QWidget):
         self.showComboDataButton.triggered.connect(self.comboList.show)
         self.calcPlotButton.triggered.connect(self.runCalcPlot)
         self.calcPlotButton.setDisabled(True)
+        ####
+        # connect cursors
+        self.plt.sigRangeChanged.connect(self.scaleCursors)
+        self.addPointButton.triggered.connect(self.addCursor)
+        self.removePointButton.triggered.connect(self.removeCursor)
+        self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
+        #  Finally enable the save button
+        self.saveButton.triggered.connect(self.save)
         self.setStatus('Ready')
     def showComboList(self):
         self.comboList.show()
@@ -220,17 +228,12 @@ class DataViewer(QtGui.QWidget):
         self.trendParameter.sigValueChanged.connect(self.setTrendParameter)
         # connect Null parameter
         self.nullFlag.sigValueChanged.connect(self.updatePlot)
-        '''
-        Connect to cursor buttons. Since it is a part of GUI, we need to connect them
-        only once. That's why I added a condition, if len(alldatasets)==0
-        '''
-        if len(self.allData)==0: 
-            self.plt.sigRangeChanged.connect(self.scaleCursors)
-            self.addPointButton.triggered.connect(self.addCursor)
-            self.removePointButton.triggered.connect(self.removeCursor)
-            self.drawCirclesButton.triggered.connect(self.plotMohrCircles)
-            #  Finally enable the save button
-            self.saveButton.triggered.connect(self.save)
+
+        ### enable cursors buttons
+        self.addPointButton.setEnabled(True)
+        self.removePointButton.setEnabled(True)
+        self.drawCirclesButton.setEnabled(True)
+        
     def addCursor(self):
         print 'adding a Cursor'
         viewrange = self.plt.viewRange()
@@ -275,8 +278,14 @@ class DataViewer(QtGui.QWidget):
                     indices.append(cursor.index)
                     ncircles += 1
                     Sig1 = data[params[0]][cursor.index] #axial stress
-                    Pc = data[params[1]][cursor.index] # confining press
-                    Pu = data[params[2]][cursor.index] # pore pressure
+                    if params[1]=='0':
+                        Pc = 0
+                    else:
+                        Pc = data[params[1]][cursor.index] # confining press
+                    if params[2]=='0':
+                        Pu = 0
+                    else:
+                        Pu = data[params[2]][cursor.index] # pore pressure
                     sigma1 = Sig1 - b*Pu
                     sigma3 = Pc - b*Pu
                     CirclesWidget.addData(sigma1,sigma3,name=DataSet +'_'+ str(ncircles))
@@ -551,6 +560,9 @@ class DataViewer(QtGui.QWidget):
         self.showComboDataButton = QtGui.QAction('Show',self,shortcut='Ctrl+Shift+C')
         self.addSceneButton = QtGui.QAction('Add scene',self,shortcut='Ctrl+C')
         self.settingsButton = QtGui.QAction('Settings',self)
+        self.addPointButton.setEnabled(False)
+        self.removePointButton.setEnabled(False)
+        self.drawCirclesButton.setEnabled(False)
         # Add buttons to submenus
         self.fileMenu.addAction(self.loadButton)
         self.fileMenu.addAction(self.saveButton)
