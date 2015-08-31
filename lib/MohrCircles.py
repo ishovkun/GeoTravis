@@ -234,7 +234,6 @@ class MohrCircles(QtGui.QWidget):
     def computeEnvelope(self,s1,s3,etype='Coulomb'):
         s1 = np.array(s1)
         s3 = np.array(s3)
-        A = np.array([s3, np.ones(len(s3))]).T
         if etype == 'Coulomb':
             popt, pcov = curve_fit(morh_coulomb,
              s3, s1,maxfev=int(1e5))
@@ -253,7 +252,7 @@ class MohrCircles(QtGui.QWidget):
         self.s1 = np.array(self.s1)
         self.s3 = np.array(self.s3)
         self.centers = (self.s1 + self.s3)/2
-        self.radii = (self.s1 - self.s3)/2
+        self.radii = abs(self.s1 - self.s3)/2
         # x and y of Mohr's circles
         self.x = {}
         self.y = {}
@@ -264,13 +263,15 @@ class MohrCircles(QtGui.QWidget):
             x = np.linspace(self.s3[i],self.s1[i],npoints)
             self.x[self.dNames[i]] = x
             self.y[self.dNames[i]] = (R**2-(x-C)**2)**0.5
-        self.env_x = np.linspace(0,max(self.s1),npoints)
+        minstess = min(np.minimum(self.s1,self.s3))
+        maxstess = max(np.maximum(self.s1,self.s3))
+        self.env_x = np.linspace(min(0,minstess),maxstess,npoints)
 
     def plot(self):
         self.plt.clear()
         self.plt.showGrid(x=True, y=True)
         self.plt.setYRange(0,max(self.s1))
-        self.plt.setXRange(0,max(self.s1))
+        self.plt.setXRange(self.env_x.min(),self.env_x.max())
         for dName in self.dNames:
             color = self.dCButtons[dName].color()
             pen = pg.mkPen(color=color, width=2)
@@ -290,14 +291,13 @@ class MohrCircles(QtGui.QWidget):
             self.plt.plot(x,y,pen=pen)
 
 if __name__ == '__main__':
-    sigma1 = 2000
-    sigma3 = 1000
+    sigma1 = 1100
+    sigma3 = 100
     McApp = QtGui.QApplication(sys.argv)
     win = MohrCircles()
+    win.addData(0,-300)
     win.addData(sigma1,sigma3)
     win.addData(sigma1*2,sigma3*2)
-    win.addData(5000,3000)
-    win.addData(4500,2500)
     win.start()
     win.show()
     McApp.exec_()

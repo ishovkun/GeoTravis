@@ -55,6 +55,7 @@ class SettingsWidget(QtGui.QMainWindow):
 		config['effective_stress'] = self.mcWidget.config()
 		config['Main parameters'] = self.msWidget.config()
 		config.write()
+		self.close()
 
 	def config(self):
 		config = self.conf

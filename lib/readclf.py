@@ -88,6 +88,7 @@ def findHeader(text,expr="Time.*Sig1[^\n]+"):
 	in texts. returns header position in text
 	'''
 	match=re.search(expr,text)
+	if match==None: return None
 	return [match.start(),match.end()]
 
 
@@ -105,11 +106,11 @@ def createUnitsDict(names,units):
 		unitsDict[names[i]] = units[i]
 	return unitsDict
 
-def findParameters(text):
+def findParameters(text,expr):
 	'''
 	find sample length
 	'''
-	expr = 'Test Parameters 3.Cluster.Value=.*\n'
+	# expr = 'Test Parameters 3.Cluster.Value=.*\n'
 	match = re.search(expr,text)
 	if match == None:
 		print 'Sample length not found!!!!'
@@ -122,7 +123,7 @@ def findParameters(text):
 		return length
 
 
-def readclf(filename):
+def readclf(filename,headerexpr,lengthexpr):
 	'''
 	Main function.
 	Reads clf files
@@ -130,9 +131,10 @@ def readclf(filename):
 	with open(filename,'r') as f:
 		text = f.read()
 	# find sample length
-	length = findParameters(text)
+	length = findParameters(text,expr=lengthexpr)
 	###
-	headerpos = findHeader(text)
+	headerpos = findHeader(text,expr=headerexpr)
+	if headerpos == None: return None
 	header = text[headerpos[0]:headerpos[1]]
 	names,units = getNames(header)
 	names = filterList(names)
@@ -150,6 +152,9 @@ def readclf(filename):
 if __name__ == '__main__':
 	filename = "BrT_47Vb_2007_04_24_21_19_42.clf"
 	# filename = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf"
-	readclf(filename)
+	readclf(filename,headerexpr="Time.*Sig1[^\n]+",
+		lengthexpr='Test Parameters 3.Cluster.Value=.*\n')
+	# readclf(filename,headerexpr="asg",
+	# 	lengthexpr='Test Parameters 3.Cluster.Value=.*\n')
 	# data,comments = readclf(filename)
 	# print comments
