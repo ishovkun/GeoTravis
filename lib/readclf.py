@@ -116,7 +116,7 @@ def findParameters(text,expr):
 		print 'Sample length not found!!!!'
 		return 0
 	else:
-		line = text[match.start():match.end()]
+		line = text[match.start():match.end()+1]
 		expr = '[0-9]+.?[0-9]*\n'
 		match = re.search(expr,line)
 		length = float(line[match.start():match.end()])
@@ -150,10 +150,10 @@ def readclf(filename,headerexpr,lengthexpr):
 	
 # # Usage
 if __name__ == '__main__':
-	filename = "BrT_47Vb_2007_04_24_21_19_42.clf"
-	# filename = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf"
+	# filename = "BrT_47Vb_2007_04_24_21_19_42.clf"
+	filename = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf"
 	readclf(filename,headerexpr="Time.*Sig1[^\n]+",
-		lengthexpr='Test Parameters 3.Cluster.Value=.*\n')
+		lengthexpr='Test Parameters 3.Cluster.Value=[^\n]+')
 	# readclf(filename,headerexpr="asg",
 	# 	lengthexpr='Test Parameters 3.Cluster.Value=.*\n')
 	# data,comments = readclf(filename)

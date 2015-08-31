@@ -7,7 +7,7 @@ from PySide import QtGui, QtCore
 from Gradients import Gradients
 from setupPlot import setup_plot
 # from TableWidget import TableWidget
-from deleteme import PlotItem
+from PlotItem import PlotItem
 
 
 WaveTypes = ['P','Sx','Sy']

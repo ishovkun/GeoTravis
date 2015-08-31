@@ -13,7 +13,6 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 # from pyqtgraph.parametertree import types as pTypes
 from pyqtgraph.Point import Point
 from lib import pymat, readclf, CursorItem, MohrCircles, CParameterTree, ComboList
-from lib.EffectiveStressSettings import EffectiveStressSettings
 from lib.SettingsWidget import SettingsWidget
 from lib.setupPlot import setup_plot
 from lib.functions import *
@@ -71,7 +70,7 @@ class DataViewer(QtGui.QWidget):
         self.allIndices = {} # contains all truncated indices
         self.allSampleLengths = {}
         self.allUnits = {}
-        self.settings.okButton.pressed.connect(self.settings.hide)
+        # self.settings.okButton.pressed.connect(self.settings.hide)
         self.exitButton.triggered.connect(sys.exit)
         self.settingsButton.triggered.connect(self.settings.show)
         self.loadButton.triggered.connect(self.requestLoad)
@@ -126,11 +125,15 @@ class DataViewer(QtGui.QWidget):
         opens file manager, reads data from file,
         calls generateList to put into GUI
         '''
+        headerexpr = self.settings.msWidget.getHeaderExpr()
+        slengthexpr = self.settings.msWidget.getSampleLengthExpr()
         if filename[0] == '': return
         if filename[1] == 'MAT files (*.mat)':
             self.data = pymat.load(filename[0])
         elif filename[1] == u'*.clf':
-            data,comments,length = readclf.readclf(filename[0])
+            data,comments,length = readclf.readclf(filename[0],
+                headerexpr=headerexpr,
+        lengthexpr=slengthexpr)
             # self.comments = comments
         else: raise IOError('Cannot read this file format.')
         # this is to remember this name when we wanna save file
@@ -288,7 +291,7 @@ class DataViewer(QtGui.QWidget):
                         Pu = data[params[2]][cursor.index] # pore pressure
                     sigma1 = Sig1 - b*Pu
                     sigma3 = Pc - b*Pu
-                    CirclesWidget.addData(sigma1,sigma3,name=DataSet +'_'+ str(ncircles))
+                    CirclesWidget.addData(max(sigma1,sigma3),min(sigma1,sigma3),name=DataSet +'_'+ str(ncircles))
         if ncircles == 0: return 0
         CirclesWidget.start()
         CirclesWidget.show()
