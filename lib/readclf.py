@@ -9,7 +9,7 @@ import re
 
 def remove_zeros(dic,par='Time'):
 	'''
-	Filters data from wierd zero values
+	Filters data from wierd zero values 
 	'''
 	newdic = {}
 	t = dic[par]
@@ -82,7 +82,7 @@ def filterList(l):
 		a = re.sub(r'[\xc2\x99]'," ",l[i])		
 	return l
 
-def findHeader(text,expr="Time.*Pc[^\n]+"):
+def findHeader(text,expr="Time.*Sig1[^\n]+"):
 	'''
 	seeks for a regular expression reg
 	in texts. returns header position in text
@@ -148,8 +148,8 @@ def readclf(filename):
 	
 # # Usage
 if __name__ == '__main__':
-	filename = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf"
-	# filename = "_Training_Berea SS _Berea SS Mechanical Properties 1500psi REDO_2015-03-31-001.clf"
+	filename = "BrT_47Vb_2007_04_24_21_19_42.clf"
+	# filename = "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf"
 	readclf(filename)
 	# data,comments = readclf(filename)
 	# print comments
