@@ -21,6 +21,10 @@ from lib.Colors import DataViewerTreeColors
 from lib.LabelStyles import *
 from lib.Slider import SliderWidget
 
+BadHeaderMessage = '''Couldn't locate the header.
+Go to Preferences->Main settings and adjust the header parameters'''
+
+
 ModifyingParameters = [
     {'name':'Plot vs.','type':'list','values':['x','y']},
     {'name':'Parameter', 'type':'list'},
@@ -131,10 +135,15 @@ class DataViewer(QtGui.QWidget):
         if filename[1] == 'MAT files (*.mat)':
             self.data = pymat.load(filename[0])
         elif filename[1] == u'*.clf':
-            data,comments,length = readclf.readclf(filename[0],
+            tup = readclf.readclf(filename[0],
                 headerexpr=headerexpr,
-        lengthexpr=slengthexpr)
-            # self.comments = comments
+                lengthexpr=slengthexpr)
+            if tup==None:
+                reply = QtGui.QMessageBox.warning(self,
+                'Wrong header',
+                BadHeaderMessage, QtGui.QMessageBox.Ok )
+                IOError('Cannot read this file.')
+            data,comments,length = tup
         else: raise IOError('Cannot read this file format.')
         # this is to remember this name when we wanna save file
         self.makeLastDir(filename[0]) # extract filename from absolute path
