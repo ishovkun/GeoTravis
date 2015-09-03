@@ -156,7 +156,9 @@ class DataViewer(QtGui.QWidget):
         self.data = data
         # self.setParameters()
         # self.connectParameters()
-        # self.cursors = []
+        isNew = True
+        if self.filename in self.allData.keys():
+            isNew = False
         self.allData[self.filename] = data
         # get one name from array to get length of the data
         key = data.keys()[0]
@@ -165,16 +167,17 @@ class DataViewer(QtGui.QWidget):
         self.allIndices[self.filename] = np.arange(l)
         self.allComments[self.filename] = comments
         self.allUnits[self.filename] = units
-        self.addDataSet(self.filename)
-    def addDataSet(self,name):
+        self.addDataSet(self.filename,isNew)
+    def addDataSet(self,name,isNew=True):
         print 'Modifying GUI: adding data set button'
-        dataSetButton = QtGui.QAction(name,self,checkable=True)
-        dataSetButton.setActionGroup(self.dataSetGroup)
-        dataSetButton.setChecked(True)
-        self.dataSetMenu.addAction(dataSetButton)
-        self.dataSetButtons[name] = dataSetButton
+        if isNew:
+            dataSetButton = QtGui.QAction(name,self,checkable=True)
+            dataSetButton.setActionGroup(self.dataSetGroup)
+            dataSetButton.setChecked(True)
+            self.dataSetMenu.addAction(dataSetButton)
+            self.dataSetButtons[name] = dataSetButton
+            dataSetButton.triggered.connect(lambda: self.setCurrentDataSet(name))
         self.allCursors[name] = []
-        dataSetButton.triggered.connect(lambda: self.setCurrentDataSet(name))
         self.setCurrentDataSet(name)
     def setCurrentDataSet(self,name):
         print 'New data set is chosen'
