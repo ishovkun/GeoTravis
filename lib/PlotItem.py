@@ -12,7 +12,14 @@ class PlotItem(pg.PlotItem):
         # self.ctrlMenu.clear()
         m = self.getViewBox().menu
         # print type(m)
-        m.clear()
+        # m.clear()
+        # for item in m.children():
+        #     # print item.iconText()
+        #     try:
+        #         print item.iconText()
+        #     except:
+        #         print type(item)
+
     def getContextMenus(self,event):
         return None
 

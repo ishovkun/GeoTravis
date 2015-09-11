@@ -196,8 +196,16 @@ class SonicViewer(QtGui.QWidget):
 				self.sublayout.nextRow()
 				self.fWidget.sublayout.nextRow()
 	def autoScalePlots(self):
-		for wave in self.getActivePlots():
-			self.plots[wave].enableAutoRange()
+		if self.autoScaleButton.isChecked():
+			for wave in self.getActivePlots():
+				self.plots[wave].enableAutoRange()
+				self.fWidget.plots[wave].enableAutoRange()
+				self.phWidget.plots[wave].enableAutoRange()
+		else:
+			for wave in self.getActivePlots():
+				self.plots[wave].disableAutoRange()
+				self.fWidget.plots[wave].disableAutoRange()
+				self.phWidget.plots[wave].disableAutoRange()
 	def getActivePlots(self):
 		activePlots = []
 		for wave in WaveTypes:
@@ -253,18 +261,24 @@ class SonicViewer(QtGui.QWidget):
 				fplot.clear()
 				fplot.getAxis('left').setLabel(yAxisName,**LabelStyle)
 				fplot.getAxis('bottom').setLabel(fXAxisName,**LabelStyle)
-				fplot.enableAutoRange(enable=True)
+				if self.autoScaleButton.isChecked():
+					fplot.enableAutoRange(enable=True)
+				else: fplot.disableAutoRange()
 			if self.skipPlottingFPhaseFlag: pass
 			else: 
 				phplot.clear()
 				phplot.getAxis('left').setLabel(yAxisName,**LabelStyle)
 				phplot.getAxis('bottom').setLabel(fXAxisName,**LabelStyle)
-				phplot.enableAutoRange(enable=True)
+				if self.autoScaleButton.isChecked():
+					phplot.enableAutoRange(enable=True)
+				else: phplot.disableAutoRange()
 
 			plot.getAxis('left').setLabel(yAxisName,**LabelStyle)
 			plot.getAxis('bottom').setLabel(xAxisName,**LabelStyle)
-			plot.enableAutoRange(enable=True)
-
+			if self.autoScaleButton.isChecked():
+				plot.enableAutoRange(enable=True)
+			else:
+				plot.disableAutoRange()
 		# Plot data in main sonic viewer
 		if self.filteringButton.isChecked():
 			self.fWidget.show()
@@ -503,7 +517,8 @@ class SonicViewer(QtGui.QWidget):
 		self.transformMenu = self.menuBar.addMenu('Transform')
 		self.intMenu = self.menuBar.addMenu('Interpretation')
 		# VIEW MENU
-		self.autoScaleButton = QtGui.QAction('Auto scale',self)
+		self.autoScaleButton = QtGui.QAction('Auto scale',self,checkable=True)
+		self.autoScaleButton.setChecked(True)
 		self.showArrivalsButton = QtGui.QAction('Arrivals',self,checkable=True)
 		self.showArrivalsButton.setDisabled(True)
 		self.showTableButton = QtGui.QAction('Table',self)
