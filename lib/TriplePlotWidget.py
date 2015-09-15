@@ -26,6 +26,7 @@ class Region(pg.LinearRegionItem):
 
 class TriplePlotWidget(QtGui.QWidget):
 	sigRegionChanged = QtCore.Signal(object)
+	sync = True
 	def __init__(self):
 		super(TriplePlotWidget, self).__init__(None,
 			# QtCore.Qt.WindowStaysOnTopHint
@@ -53,6 +54,10 @@ class TriplePlotWidget(QtGui.QWidget):
 			self.sublayout.addItem(self.plots[wave])
 			self.sublayout.nextRow()
 			setup_plot(self.plots[wave])
+		self.plots['P'].setXLink(self.plots['Sx'])
+		self.plots['P'].setYLink(self.plots['Sx'])
+		self.plots['Sy'].setXLink(self.plots['Sx'])
+		self.plots['Sy'].setYLink(self.plots['Sx'])
 
 	def addRegions(self):
 		for wave in WaveTypes:
@@ -60,6 +65,7 @@ class TriplePlotWidget(QtGui.QWidget):
 			region = self.regions[wave]
 			region.setZValue(10)
 			plt.addItem(self.regions[wave],ignoreBounds=True)
+
 
 	def moveRegions(self):
 		sender = self.sender()
@@ -100,8 +106,6 @@ if __name__ == '__main__':
 		plt.plot(x,y[i],pen='g')
 		plt.enableAutoRange()
 		i+=1
-	print min(win.interval())
-
 
 	win.show()
 	win.setGeometry(80, 30, 1000, 700)
