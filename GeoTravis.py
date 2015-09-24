@@ -266,7 +266,7 @@ class GeoTravis(DataViewer):
             indices = compare_arrays(self.comments['Comments'],sonicDataKeys)
             # find sonic file names which are not in comments and remove them
             outliers = find_outliers(sonicDataKeys,self.comments['Comments'])
-            if outliers != []:
+            if outliers.shape:
                 print 'found sonic files not prescribed in comments'
                 for i in outliers:
                     outlier = sonicDataKeys[i]

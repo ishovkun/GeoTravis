@@ -1,5 +1,7 @@
+import sys
 import pyqtgraph as pg
 import numpy as np
+from PySide import QtCore, QtGui
 
 class MultiLine(pg.QtGui.QGraphicsPathItem):
     def __init__(self, x, y):
@@ -14,7 +16,11 @@ class MultiLine(pg.QtGui.QGraphicsPathItem):
     def boundingRect(self):
         return self.path.boundingRect()
 
-# x= np.array([[1,2,3],[4,5,6]])
-# y = np.array([[1,1,1],[2,2,2]])
-# a = MultiLine(x,y)
-# print a.__dict__
+if __name__ == '__main__':
+    
+    App = QtGui.QApplication(sys.argv)
+    x = np.array([[1,2,3],[4,5,6]])
+    y = np.array([[1,1,1],[2,2,2]])
+    a = MultiLine(x,y)
+    # App._exec()
+    # print a.__dict__
