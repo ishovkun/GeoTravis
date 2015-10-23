@@ -47,7 +47,7 @@ class DataViewer(QtGui.QWidget):
         super(DataViewer, self).__init__()
         self.comboList = ComboList.ComboList()
         self.settings = SettingsWidget()
-        self.calcPlot = CalculatorPlot()
+        self.calcPlot = CalculatorPlot(parent=self)
         self.setupGUI()
         # default plots will be drawn with multiple y and single x
         self.mainAxis = 'x'
@@ -202,9 +202,10 @@ class DataViewer(QtGui.QWidget):
         self.connectParameters()
         # self.mcSettings.setAvailableVariables(self.data.keys())
         self.settings.mcWidget.setAvailableVariables(self.data.keys())
-    	self.calcPlotButton.setDisabled(False)
+        self.calcPlotButton.setDisabled(False)
         if self.calcPlot.active:
-        	self.calcPlot.setData(self.data)
+            print 'Calculator active'
+            self.calcPlot.setData(self.data)
         self.updatePlot()
     def save(self):
         self.lastdir = self.checkForLastDir()
@@ -410,8 +411,8 @@ class DataViewer(QtGui.QWidget):
         if self.computeTrendFlag.value():
             self.plotTrend()
         if self.calcPlot.active:
-        	self.calcPlot.indices = self.indices
-        	self.calcPlot.plot()
+            self.calcPlot.indices = self.indices
+            self.calcPlot.plot()
 
     def plotVersusX(self):
         '''
@@ -698,10 +699,10 @@ class DataViewer(QtGui.QWidget):
             y = item.yData
             self.comboList.addItem(name,x,y)
     def runCalcPlot(self):
-    	self.calcPlot.active = True
-    	self.calcPlot.setData(self.data)
+        self.calcPlot.active = True
+        self.calcPlot.setData(self.data)
         self.calcPlot.show()
-    	self.calcPlot.activateWindow()
+        self.calcPlot.activateWindow()
 
 if __name__ == '__main__':
     App = QtGui.QApplication(sys.argv)
@@ -709,6 +710,10 @@ if __name__ == '__main__':
     win = DataViewer()
     win.showMaximized()
     # win.showFullScreen()
+    # filename = ["/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/" + \
+    # "_Training_Pc=1500 psi Sonic endcaps_Berea Mechanical Testing _2015-04-27_001.clf",
+    #     u'*.clf']
+    # win.load(filename)
     win.show()
     App.exec_()
     

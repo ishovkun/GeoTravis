@@ -103,13 +103,13 @@ class GeoTravis(DataViewer):
             filename = os.path.split(pathToFile)[1]
             if '.TRC' in filename:
                 if 'P'  in filename:
-                    pwaves = read_TRC(directory +'\\'+ filename)
+                    pwaves = read_TRC(directory +'/'+ filename)
                     self.sonicData['P'][filename] = pwaves
                 elif 'Sx' in filename:
-                    sxwaves = read_TRC(directory +'\\' + filename)
+                    sxwaves = read_TRC(directory +'/' + filename)
                     self.sonicData['Sx'][filename] = sxwaves
                 elif 'Sy' in filename:
-                    sywaves = read_TRC(directory +'\\' + filename)
+                    sywaves = read_TRC(directory +'/' + filename)
                     self.sonicData['Sy'][filename] = sywaves
                 else: print ('wierd filename')
             else: print ('wrong datatype')
@@ -315,5 +315,8 @@ if __name__ == '__main__':
     win = GeoTravis()
     win.show()
     win.showMaximized()
+    # directory = "/home/ishovkun/Dropbox/Experiments/TO_BE_ANALYZED/1500psi/1500pc/"
+
+
     ViewerApp.exec_()
     sys.exit(ViewerApp.exec_())

@@ -11,6 +11,7 @@ def read_TRC(filename):
 	"""
 	try:
 		expr = '\n-?\d+\.?\d+\E?-?\d+.+[-+]?\d+\.?\d+\E?[-+]?\d+\n'
+		# expr = '\n-?\d+\.?\d+\E?-?\d+.+[-+]?\d+\.?\d+\E?[-+]?\d+'
 		match = re.search(expr,text) # get beginning of the data
 		# print text[match.start()-2:match.end()+3]
 		text = text[match.start():-1] # search starting from the beginning of the data
