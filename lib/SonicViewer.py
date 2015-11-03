@@ -12,11 +12,13 @@ from MultiLine import MultiLine
 from functions import *
 from Gradients import Gradients
 from setupPlot import setup_plot
+from ViewBox import ViewBox
 from TableWidget import TableWidget
 from TriplePlotWidget import TriplePlotWidget
 from GradientEditorWidget import GradientEditorWidget
 from BindingWidget import BindingWidget
 from InterpretationSettingsWidget import InterpretationSettingsWidget
+
 
 xAxisName = 'Oscilloscope time (μs)'
 fXAxisName = 'Frequency (MHz)'
@@ -77,6 +79,7 @@ class SonicViewer(QtGui.QWidget):
 		self.yAxis = 'Track #'
 		self.y = {}
 		self.aTimes = {}
+		# Connect everything
 		self.showArrivalsButton.triggered.connect(self.parent.plotSonicData)
 		self.pickArrivalsButton.triggered.connect(self.pickAllArrivals)
 		self.invertYButton.triggered.connect(self.parent.plotSonicData)
@@ -99,6 +102,22 @@ class SonicViewer(QtGui.QWidget):
 			self.params[wave].param('Arrival times').param('BTA').sigValueChanged.connect(self.recomputeArrivals)
 			self.params[wave].param('Arrival times').param('ATA').sigValueChanged.connect(self.recomputeArrivals)
 			self.params[wave].param('Arrival times').param('DTA').sigValueChanged.connect(self.recomputeArrivals)
+			self.plots[wave].vb.sigAltClick.connect(self.handPick)
+	def handPick(self,sender,pos):
+		if not self.handPickArrivalsButton.isChecked():
+			return
+		else: 
+			# first find sender
+			for wave in self.getActivePlots():
+				if self.plots[wave].vb == sender:
+					break
+			# now wave is the type sent the signal
+			# find closest sonic track to the y position
+			closest = abs(self.y[wave] - pos.y()).argmin()
+			self.aTimes[wave][closest] = pos.x()
+			self.parent.plotSonicData()
+
+		
 	def plotFilteredData(self):
 		self.skipPlottingFAmpFlag = True
 		self.parent.plotSonicData()
@@ -228,6 +247,7 @@ class SonicViewer(QtGui.QWidget):
 		self.arrivalsPicked = True
 		self.showArrivalsButton.setDisabled(False)
 		self.moduliButton.setDisabled(False)
+		self.handPickArrivalsButton.setDisabled(False)
 		self.showArrivalsButton.trigger()
 
 	def getInverseFFT(self):
@@ -279,6 +299,7 @@ class SonicViewer(QtGui.QWidget):
 				plot.enableAutoRange(enable=True)
 			else:
 				plot.disableAutoRange()
+
 		# Plot data in main sonic viewer
 		if self.filteringButton.isChecked():
 			self.fWidget.show()
@@ -544,10 +565,13 @@ class SonicViewer(QtGui.QWidget):
 		self.modeMenu.addAction(self.contourButton)
 		# INTERPRETATION MENU
 		self.pickArrivalsButton = QtGui.QAction('Pick arrivals',self)
+		self.handPickArrivalsButton = QtGui.QAction('Hand pick',self,checkable=True)
 		self.moduliButton = QtGui.QAction('Elastic moduli',self)
 		self.moduliButton.setDisabled(True)
+		self.handPickArrivalsButton.setDisabled(True)
 
 		self.intMenu.addAction(self.pickArrivalsButton)
+		self.intMenu.addAction(self.handPickArrivalsButton)
 		self.intMenu.addAction(self.moduliButton)
 		# TRANSFORM MENU
 		self.showForrierMagnitudeButton = QtGui.QAction('Fourrier magnitude',self)
@@ -589,7 +613,8 @@ class SonicViewer(QtGui.QWidget):
 				type='group',children=Parameters)
 			self.trees[wave].setParameters(self.params[wave],showTop=True)
 			# fill plotting area with 3 plots
-			self.plots[wave] = self.sublayout.addPlot()
+			# self.plots[wave] = self.sublayout.addPlot()
+			self.plots[wave] = self.sublayout.addPlot(viewBox=ViewBox())
 			setup_plot(self.plots[wave])
 			self.sublayout.nextRow()
 

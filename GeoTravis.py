@@ -39,6 +39,7 @@ class GeoTravis(DataViewer):
         super(GeoTravis, self).__init__()
         self.SViewer = SonicViewer(self)
         self.SViewer.setWindowIcon(QtGui.QIcon('images/Logo.png'))
+        # additional widgets
         self.cecw = ConfigureEndCapsWidget()
         self.aw = AboutWidget()
         # dict for sonic data
@@ -48,6 +49,8 @@ class GeoTravis(DataViewer):
         self.allComments = {}
         # indices in geo data corresponding to sonic times within truncated interval
         self.gsIndices = {}
+
+        # connect signals to functions
         self.showSonicButton.triggered.connect(self.showSonicData)
         self.configureEndCapsButton.triggered.connect(self.cecw.show)
         self.aboutButton.triggered.connect(self.aw.show)
@@ -58,7 +61,7 @@ class GeoTravis(DataViewer):
         self.setWindowTitle('GeoTravis')
         self.fileMenu.clear()
         self.loadSonicButton = QtGui.QAction('Load sonic data',self)
-        self.loadSonicButton.triggered.connect(self.loadSonicData)
+        self.loadSonicButton.triggered.connect(self.requestLoadSonic)
         self.fileMenu.addAction(self.loadButton)
         self.fileMenu.addAction(self.loadSonicButton)
         self.fileMenu.addAction(self.saveButton)
@@ -77,17 +80,9 @@ class GeoTravis(DataViewer):
         self.pBar.setWindowTitle("Loading sonic data")
         self.pBar.setAutoClose(True)
 
-    def loadSonicData(self):
-        '''
-        When 'Load sonic data' button is pressed,
-        opens a file dialog which enables of loading multiple files
-        saves data from those files into three variables
-        '''
-        # print 'Loading sonic data'
-        self.setStatus('Loading sonic data')
+    def requestLoadSonic(self):
         # reset sonic data
         self.sonicData = {'P':{},'Sx':{},'Sy':{}}
-
         self.lastdir = self.checkForLastDir()
         caption = 'Open file'
         # use current/working directory
@@ -95,6 +90,14 @@ class GeoTravis(DataViewer):
         filter_mask = "Sonic data files (*.TRC *.txt)"
         filenames = QtGui.QFileDialog.getOpenFileNames(None,
             caption, "%s"%(self.lastdir), filter_mask)[0]
+        self.loadSonic(filenames)
+    def loadSonic(self,filenames):
+        '''
+        When 'Load sonic data' button is pressed,
+        opens a file dialog which enables of loading multiple files
+        saves data from those files into three variables
+        '''
+        self.setStatus('Loading sonic data')
         Nfiles = len(filenames)
         self.pBar.show()
         i = 0.
